@@ -1,0 +1,270 @@
+<div class="min-h-screen bg-gray-50 py-10">
+  <div class="mx-auto max-w-screen-xl px-4 lg:px-8">
+
+
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="text-3xl font-extrabold text-gray-900">Mes réservations</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Gère tes réservations : QR code, annulation, historique.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <button class="rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+          Export PDF
+        </button>
+        <button class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+          Réserver un terrain
+        </button>
+      </div>
+    </div>
+
+
+    <div class="mt-8 overflow-hidden rounded-3xl border bg-white">
+      <div class="h-28 bg-gradient-to-br from-emerald-100 to-sky-100"></div>
+      <div class="p-6">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              Prochaine réservation
+            </div>
+            <h2 class="mt-3 text-2xl font-extrabold text-gray-900">Court 24 Arena — Waterloo</h2>
+            <p class="mt-1 text-sm text-gray-600">Terrain 4 • 19:00 → 20:00 • (Date à définir)</p>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Indoor</span>
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">QR code</span>
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Paiement OK</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <button class="rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+              Télécharger QR
+            </button>
+            <button class="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
+              Voir détails
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="mt-8 rounded-3xl border bg-white p-4">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-wrap gap-2">
+          <button class="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+            Tous
+          </button>
+          <button class="rounded-full border px-4 py-2 text-xs font-semibold hover:bg-gray-50">
+            À venir
+          </button>
+          <button class="rounded-full border px-4 py-2 text-xs font-semibold hover:bg-gray-50">
+            Passées
+          </button>
+          <button class="rounded-full border px-4 py-2 text-xs font-semibold hover:bg-gray-50">
+            Annulées
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <input
+            class="w-full sm:w-64 rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+            placeholder="Rechercher (club, ville...)"
+          />
+          <select class="w-full sm:w-44 rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-200">
+            <option>Trier: récent</option>
+            <option>Trier: ancien</option>
+            <option>Prix: croissant</option>
+            <option>Prix: décroissant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+
+
+      <div class="rounded-3xl border bg-white p-6 hover:shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              À venir
+            </div>
+            <h3 class="mt-3 text-lg font-extrabold text-gray-900">Court 24 Arena</h3>
+            <p class="mt-1 text-sm text-gray-600">Waterloo • Terrain 2</p>
+          </div>
+
+          <div class="text-right">
+            <div class="text-xs text-gray-600">Total</div>
+            <div class="text-xl font-extrabold text-gray-900">€18</div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Date</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">—</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Heure</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">18:00 → 19:00</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Statut</div>
+            <div class="mt-1 text-sm font-semibold text-emerald-700">Confirmée</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button class="w-full rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+            Télécharger QR
+          </button>
+          <button class="w-full rounded-xl border px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+            Annuler
+          </button>
+        </div>
+      </div>
+
+
+      <div class="rounded-3xl border bg-white p-6 hover:shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              À venir
+            </div>
+            <h3 class="mt-3 text-lg font-extrabold text-gray-900">PlayZone Padel</h3>
+            <p class="mt-1 text-sm text-gray-600">Uccle • Terrain 1</p>
+          </div>
+
+          <div class="text-right">
+            <div class="text-xs text-gray-600">Total</div>
+            <div class="text-xl font-extrabold text-gray-900">€16</div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Date</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">—</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Heure</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">20:00 → 21:00</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Statut</div>
+            <div class="mt-1 text-sm font-semibold text-emerald-700">Confirmée</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button class="w-full rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+            Télécharger QR
+          </button>
+          <button class="w-full rounded-xl border px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+            Annuler
+          </button>
+        </div>
+      </div>
+
+
+      <div class="rounded-3xl border bg-white p-6 hover:shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+              Passée
+            </div>
+            <h3 class="mt-3 text-lg font-extrabold text-gray-900">Padel Factory</h3>
+            <p class="mt-1 text-sm text-gray-600">Forest • Terrain 9</p>
+          </div>
+
+          <div class="text-right">
+            <div class="text-xs text-gray-600">Total</div>
+            <div class="text-xl font-extrabold text-gray-900">€15</div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Date</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">—</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Heure</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">19:00 → 20:00</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Statut</div>
+            <div class="mt-1 text-sm font-semibold text-gray-700">Terminée</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button class="w-full rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+            Voir reçu
+          </button>
+          <button class="w-full rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
+            Réserver à nouveau
+          </button>
+        </div>
+      </div>
+
+
+      <div class="rounded-3xl border bg-white p-6 hover:shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+              Annulée
+            </div>
+            <h3 class="mt-3 text-lg font-extrabold text-gray-900">Court 24 Arena</h3>
+            <p class="mt-1 text-sm text-gray-600">Waterloo • Terrain 7</p>
+          </div>
+
+          <div class="text-right">
+            <div class="text-xs text-gray-600">Total</div>
+            <div class="text-xl font-extrabold text-gray-900">€18</div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Date</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">—</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Heure</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">21:00 → 22:00</div>
+          </div>
+          <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="text-xs text-gray-600">Statut</div>
+            <div class="mt-1 text-sm font-semibold text-red-700">Annulée</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button class="w-full rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+            Détails
+          </button>
+          <button class="w-full rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
+            Réserver à nouveau
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="mt-10 hidden rounded-3xl border bg-white p-10 text-center">
+      <div class="text-xl font-extrabold text-gray-900">Aucune réservation</div>
+      <p class="mt-2 text-sm text-gray-600">Réserve un terrain pour commencer.</p>
+      <button class="mt-5 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+        Réserver maintenant
+      </button>
+    </div>
+
+  </div>
+</div>

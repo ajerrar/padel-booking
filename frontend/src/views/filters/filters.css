@@ -1,0 +1,44 @@
+/* Styles pour le composant de filtres */
+
+:host {
+  display: block;
+}
+
+/* Styles personnalisés pour les inputs et selects */
+input[type="text"],
+input[type="date"],
+select {
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:hover,
+input[type="date"]:hover,
+select:hover {
+  border-color: #d1d5db;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Slider personnalisé */
+input[type="range"] {
+  accent-color: #10b981;
+}
+
+input[type="range"]:hover {
+  opacity: 0.8;
+}
+
+/* Boutons */
+button {
+  transition: all 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
