@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user-service';
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -36,6 +37,7 @@ export class Register {
 
     const v = this.form.getRawValue();
 
+    // ✅ Register = PLAYER (User)
     this.userService.register({
       firstName: v.firstName,
       lastName: v.lastName,
@@ -43,10 +45,10 @@ export class Register {
       phone: v.phone,
       city: v.city,
       level: v.level,
-      role: 'Joueur',
+      role: 'User',
     });
 
-    this.router.navigate(['/user']);
+    this.router.navigate(['/user'], { replaceUrl: true });
   }
 
   hasError(fieldName: string, errorName: string): boolean {

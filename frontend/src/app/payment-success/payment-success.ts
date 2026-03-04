@@ -2,25 +2,32 @@
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReservationService } from '../../services/reservation-service';
+import { UserService } from '../../services/user-service';
 
 @Component({
   selector: 'app-payment-success',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './payment-success.html',
-  styleUrl: './payment-success.css',
+  styleUrls: ['./payment-success.css'],
 })
 export class PaymentSuccess {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private reservationService = inject(ReservationService);
+  private userService = inject(UserService);
 
-  clubName = signal<string>('â€”');
-  courtName = signal<string>('â€”');
-  time = signal<string>('â€”');
+  me = this.userService.currentUser;
+
+  clubName = signal<string>('—');
+  courtName = signal<string>('—');
+  time = signal<string>('—');
   total = signal<number>(0);
 
-  // Ã©vite de crÃ©er la rÃ©servation 2 fois si la page se recharge
+  // ✅ nouveaux champs pour admin
+  date = signal<string>('');      // "YYYY-MM-DD"
+  siteName = signal<string>('');  // "Waterloo"
+
   private created = signal(false);
 
   reference = computed(() => {
@@ -30,12 +37,15 @@ export class PaymentSuccess {
 
   constructor() {
     this.route.queryParamMap.subscribe(p => {
-      this.clubName.set(p.get('clubName') ?? 'â€”');
-      this.courtName.set(p.get('courtName') ?? 'â€”');
-      this.time.set(p.get('time') ?? 'â€”');
+      this.clubName.set(p.get('clubName') ?? '—');
+      this.courtName.set(p.get('courtName') ?? '—');
+      this.time.set(p.get('time') ?? '—');
       this.total.set(Number(p.get('total') ?? 0));
 
-      // âœ… crÃ©er rÃ©servation ici (aprÃ¨s paiement)
+      // ✅ récupère depuis query params si tu les passes
+      this.date.set(p.get('date') ?? '');
+      this.siteName.set(p.get('siteName') ?? '');
+
       this.createReservationOnce();
     });
   }
@@ -43,14 +53,22 @@ export class PaymentSuccess {
   private createReservationOnce() {
     if (this.created()) return;
 
-    // si jamais les infos ne sont pas lÃ 
-    if (this.clubName() === 'â€”' || this.courtName() === 'â€”' || this.time() === 'â€”') return;
+    const u = this.me();
+    if (!u) {
+      this.router.navigate(['/login'], { replaceUrl: true });
+      return;
+    }
+
+    if (this.clubName() === '—' || this.courtName() === '—' || this.time() === '—') return;
 
     this.reservationService.add({
+      userMatricule: u.matricule,
       clubName: this.clubName(),
       courtName: this.courtName(),
       time: this.time(),
-      total: this.total(),
+      total: Number(this.total()) ,
+      date: this.date(),
+      siteName: this.siteName(),
     });
 
     this.created.set(true);
@@ -60,11 +78,11 @@ export class PaymentSuccess {
     this.router.navigate(['/home']);
   }
 
-  goBackToClub() {
-    this.router.navigate(['/home']);
-  }
-
   goMyReservations() {
     this.router.navigate(['/my-reservations']);
+  }
+
+  goBackToClub() {
+    this.router.navigate(['/clubs']);
   }
 }

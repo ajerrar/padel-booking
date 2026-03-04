@@ -103,11 +103,11 @@ export class ClubService {
   /**
    * Récupère tous les clubs
    *
-  getAll(): Club[] {
-    return this.clubs;
-  }
+   getAll(): Club[] {
+   return this.clubs;
+   }
 
-  /**
+   /**
    * Récupère les clubs filtrés
    */
   getFilteredClubs(): Observable<Club[]> {

@@ -34,24 +34,12 @@ export class Payment {
       return;
     }
 
-    // ✅ On va vers la page success (c’est là qu’on crée la réservation)
     this.router.navigate(['/payment-success'], {
       queryParams: {
-        clubName: this.clubName(),
-        courtName: this.courtName(),
-        time: this.time(),
-        total: this.total(),
-      },
-    });
-
-
-    // ✅ Redirection vers page "merci paiement"
-    this.router.navigate(['/payment-success'], {
-      queryParams: {
-        clubName: this.clubName(),
-        courtName: this.courtName(),
-        time: this.time(),
-        total: this.total(),
+        clubName: this.clubName?.() ?? this.clubName,
+        courtName: this.courtName?.() ?? this.courtName,
+        time: this.time?.() ?? this.time,
+        total: this.total?.() ?? this.total,
       },
     });
   }

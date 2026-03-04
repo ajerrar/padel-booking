@@ -2,122 +2,158 @@
   <div class="mx-auto max-w-screen-xl px-4 lg:px-8">
 
     <!-- HEADER -->
-    <div class="flex items-end justify-between gap-4">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        <h1 class="text-3xl font-extrabold text-gray-900">Mon Profil</h1>
-        <p class="text-gray-600 mt-2">Gère tes informations et ton activité.</p>
+        <h1 class="text-3xl font-extrabold text-gray-900">Mon profil</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Gère tes informations et tes réservations.
+        </p>
       </div>
 
-      <button
-        (click)="goReservations()"
-        class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-        Mes réservations
-      </button>
-    </div>
+      <div class="flex flex-col gap-2 sm:flex-row">
 
-    <div class="grid gap-6 mt-8 lg:grid-cols-3" *ngIf="me() as u; else notLogged">
-
-      <!-- PROFIL CARD -->
-      <div class="bg-white rounded-3xl border p-6 text-center">
-        <div class="w-20 h-20 rounded-full bg-emerald-100 mx-auto flex items-center justify-center text-2xl font-bold text-emerald-700">
-          {{ initials() }}
-        </div>
-
-        <h2 class="mt-4 text-xl font-bold">
-          {{ u.firstName }} {{ u.lastName }}
-        </h2>
-
-        <p class="text-sm text-gray-600">
-          Matricule : <span class="font-semibold">#{{ u.matricule }}</span>
-        </p>
-
-        <span class="mt-3 inline-block bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold">
-          {{ u.role === 'Joueur' ? 'Joueur' : 'Admin' }}
-        </span>
+        <button
+          (click)="goReservations()"
+          class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+          Mes réservations
+        </button>
 
         <button
           (click)="logout()"
-          class="mt-6 w-full rounded-xl border py-2 text-sm font-semibold hover:bg-gray-50">
-          Se déconnecter
+          class="rounded-xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+          Déconnexion
         </button>
-      </div>
 
-      <!-- INFOS -->
-      <div class="bg-white rounded-3xl border p-6 lg:col-span-2">
-        <h3 class="text-lg font-bold mb-4">Informations personnelles</h3>
-
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="bg-gray-50 rounded-xl p-4">
-            <p class="text-xs text-gray-600">Email</p>
-            <p class="font-semibold">{{ u.email }}</p>
-          </div>
-
-          <div class="bg-gray-50 rounded-xl p-4">
-            <p class="text-xs text-gray-600">Téléphone</p>
-            <p class="font-semibold">{{ u.phone || '—' }}</p>
-          </div>
-
-          <div class="bg-gray-50 rounded-xl p-4">
-            <p class="text-xs text-gray-600">Ville</p>
-            <p class="font-semibold">{{ u.city }}</p>
-          </div>
-
-          <div class="bg-gray-50 rounded-xl p-4">
-            <p class="text-xs text-gray-600">Niveau padel</p>
-            <p class="font-semibold">{{ u.level }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- STATS (démo) -->
-      <div class="bg-white rounded-3xl border p-6">
-        <h3 class="text-lg font-bold mb-4">Statistiques</h3>
-
-        <div class="space-y-4">
-          <div class="flex justify-between">
-            <span>Réservations totales</span>
-            <span class="font-bold">0</span>
-          </div>
-
-          <div class="flex justify-between">
-            <span>Heures jouées</span>
-            <span class="font-bold">0h</span>
-          </div>
-
-          <div class="flex justify-between">
-            <span>Clubs visités</span>
-            <span class="font-bold">0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACTIVITÉ (démo) -->
-      <div class="bg-white rounded-3xl border p-6 lg:col-span-2">
-        <h3 class="text-lg font-bold mb-4">Activité récente</h3>
-
-        <div class="space-y-3">
-          <div class="text-sm text-gray-600">
-            Aucune activité pour le moment.
-          </div>
-        </div>
       </div>
     </div>
 
-    <ng-template #notLogged>
-      <div class="mt-8 rounded-3xl border bg-white p-6">
-        <h2 class="text-xl font-extrabold text-gray-900">Tu n’es pas connecté</h2>
-        <p class="mt-2 text-sm text-gray-600">Inscris-toi ou connecte-toi pour accéder à ton profil.</p>
+    <!-- USER CARD -->
+    <div class="mt-8 rounded-3xl border bg-white p-6">
 
-        <div class="mt-4 flex gap-3">
-          <a routerLink="/register" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-            S’inscrire
-          </a>
-          <a routerLink="/home" class="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-gray-50">
-            Retour accueil
-          </a>
+      <div class="flex items-center gap-4">
+
+        <!-- AVATAR -->
+        <div
+          class="h-16 w-16 rounded-2xl bg-emerald-100 flex items-center justify-center text-2xl font-extrabold text-emerald-700">
+          {{ initials() }}
         </div>
+
+        <!-- NAME -->
+        <div>
+          <div class="text-xl font-extrabold text-gray-900">
+            {{ me()?.firstName }} {{ me()?.lastName }}
+          </div>
+
+          <div class="text-sm text-gray-600 mt-1">
+            Matricule : <span class="font-semibold">#{{ me()?.matricule }}</span>
+          </div>
+
+          <span
+            class="mt-2 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            {{ roleLabel() }}
+          </span>
+
+        </div>
+
       </div>
-    </ng-template>
+
+      <!-- USER INFO -->
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+
+        <div class="rounded-2xl bg-gray-50 p-4">
+          <div class="text-xs text-gray-600">Email</div>
+          <div class="mt-1 text-sm font-semibold text-gray-900">
+            {{ me()?.email }}
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-gray-50 p-4">
+          <div class="text-xs text-gray-600">Téléphone</div>
+          <div class="mt-1 text-sm font-semibold text-gray-900">
+            {{ me()?.phone }}
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-gray-50 p-4">
+          <div class="text-xs text-gray-600">Ville</div>
+          <div class="mt-1 text-sm font-semibold text-gray-900">
+            {{ me()?.city }}
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-gray-50 p-4">
+          <div class="text-xs text-gray-600">Niveau</div>
+          <div class="mt-1 text-sm font-semibold text-gray-900">
+            {{ me()?.level }}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- STATS -->
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+
+      <div class="rounded-3xl border bg-white p-6">
+        <div class="text-xs text-gray-600">Réservations</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+      </div>
+
+      <div class="rounded-3xl border bg-white p-6">
+        <div class="text-xs text-gray-600">Heures jouées</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+      </div>
+
+      <div class="rounded-3xl border bg-white p-6">
+        <div class="text-xs text-gray-600">Clubs visités</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+      </div>
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="mt-8 rounded-3xl border bg-white p-6">
+
+      <h2 class="text-lg font-extrabold text-gray-900">
+        Actions rapides
+      </h2>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+
+        <button
+          (click)="goReservations()"
+          class="rounded-xl border bg-white px-4 py-3 text-sm font-semibold hover:bg-gray-50">
+          Voir mes réservations
+        </button>
+
+        <button
+          (click)="logout()"
+          class="rounded-xl border bg-white px-4 py-3 text-sm font-semibold hover:bg-gray-50">
+          Déconnexion
+        </button>
+
+      </div>
+
+      <!-- ADMIN LINKS -->
+
+      <div *ngIf="me()?.role === 'AdminGlobal'" class="mt-6">
+        <a
+          routerLink="/admin-global"
+          class="text-sm font-semibold text-emerald-700 hover:underline">
+          Accéder au dashboard admin →
+        </a>
+      </div>
+
+      <div *ngIf="me()?.role === 'AdminClub'" class="mt-4">
+        <a
+          routerLink="/admin-site"
+          class="text-sm font-semibold text-emerald-700 hover:underline">
+          Gérer mon site →
+        </a>
+      </div>
+
+    </div>
 
   </div>
 </div>
