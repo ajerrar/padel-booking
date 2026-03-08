@@ -1,0 +1,104 @@
+<div class="page-shell">
+  <div class="page-container-narrow">
+
+    <div class="page-header">
+      <div>
+        <div class="text-sm text-gray-600">
+          Accueil <span class="mx-1">›</span> Paiement
+        </div>
+        <h1 class="page-title">Paiement</h1>
+        <p class="page-subtitle">
+          Finalise ton paiement pour confirmer ta réservation.
+        </p>
+      </div>
+
+      <button
+        (click)="navigateBack()"
+        class="secondary-button">
+        ← Retour
+      </button>
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-2">
+
+      <div class="section-card-plain">
+        <h2 class="section-title">Récapitulatif</h2>
+
+        <div class="mt-5 space-y-3">
+          <div class="sub-card">
+            <div class="field-label">Club</div>
+            <div class="field-value">{{ clubName() }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Terrain</div>
+            <div class="field-value">{{ courtName() }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Date</div>
+            <div class="field-value">{{ date() || '—' }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Heure</div>
+            <div class="field-value">{{ time() }}</div>
+          </div>
+
+          <div class="rounded-2xl bg-emerald-50 p-4">
+            <div class="text-xs text-emerald-700">Montant à payer</div>
+            <div class="mt-1 text-2xl font-extrabold text-emerald-700">€{{ total() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card-plain">
+        <h2 class="section-title">Carte bancaire</h2>
+
+        <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()" class="mt-5 space-y-4">
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-gray-700">Nom du titulaire</label>
+            <input
+              formControlName="cardHolder"
+              class="input-field-lg"
+              placeholder="Nom complet" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-gray-700">Numéro de carte</label>
+            <input
+              formControlName="cardNumber"
+              class="input-field-lg"
+              placeholder="1234123412341234" />
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Expiration</label>
+              <input
+                formControlName="expirationDate"
+                class="input-field-lg"
+                placeholder="MM/AA" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">CVC</label>
+              <input
+                formControlName="cvc"
+                class="input-field-lg"
+                placeholder="123" />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="primary-button-lg w-full">
+            Payer maintenant
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>

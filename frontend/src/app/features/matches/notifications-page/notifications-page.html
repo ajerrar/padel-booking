@@ -1,0 +1,67 @@
+<div class="page-shell">
+  <div class="page-container">
+
+    <div class="page-header">
+      <div>
+        <div class="text-sm text-gray-600">
+          Accueil <span class="mx-1">›</span> Notifications
+        </div>
+
+        <app-page-header
+          title="Mes notifications"
+          subtitle="Invitations, paiements, nouveaux joueurs...">
+        </app-page-header>
+      </div>
+
+      <button
+        (click)="navigateToProfile()"
+        class="secondary-button">
+        ← Retour au profil
+      </button>
+    </div>
+
+    <div class="mt-8 space-y-4" *ngIf="hasResults(); else emptyState">
+      <div
+        *ngFor="let notification of notifications()"
+        class="section-card-plain">
+
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="badge-success inline-flex items-center gap-2">
+              Notification
+            </div>
+
+            <h3 class="mt-3 text-lg font-extrabold text-gray-900">{{ notification.title }}</h3>
+            <p class="mt-1 text-sm text-gray-600">{{ notification.message }}</p>
+
+            <div class="mt-2 text-xs text-gray-500">
+              {{ notification.date || '—' }} <span *ngIf="notification.time">• {{ notification.time }}</span>
+            </div>
+          </div>
+
+          <button
+            (click)="removeNotification(notification.id)"
+            class="secondary-button">
+            ✕
+          </button>
+        </div>
+
+        <div class="mt-4" *ngIf="notification.matchId">
+          <button
+            (click)="navigateToMatchDetail(notification.matchId)"
+            class="dark-button">
+            Voir le match
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <app-empty-state
+        title="Aucune notification"
+        message="Les nouvelles invitations et activités apparaîtront ici.">
+      </app-empty-state>
+    </ng-template>
+
+  </div>
+</div>

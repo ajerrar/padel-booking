@@ -1,0 +1,47 @@
+<div class="page-shell">
+  <div class="page-container-narrow">
+
+    <div class="mx-auto max-w-xl">
+      <div class="section-card-plain">
+
+        <div class="text-center">
+          <h1 class="page-title">Connexion</h1>
+          <p class="page-subtitle">
+            Connecte-toi pour accéder à tes réservations et à ton profil.
+          </p>
+        </div>
+
+        <div *ngIf="errorMessage()" class="status-error mt-6">
+          {{ errorMessage() }}
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="mt-6 space-y-4">
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-gray-700">Email</label>
+            <input
+              formControlName="email"
+              class="input-field-lg"
+              placeholder="ton@email.com" />
+          </div>
+
+          <button
+            type="submit"
+            class="primary-button-lg w-full">
+            Se connecter
+          </button>
+
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-600">
+          Pas encore de compte ?
+          <a routerLink="/register" class="font-semibold text-emerald-700 hover:underline">
+            Créer un compte
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

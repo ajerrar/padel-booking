@@ -1,0 +1,100 @@
+<div class="page-shell">
+  <div class="page-container">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Membres</h1>
+        <p class="page-subtitle">
+          Vue globale de tous les membres de la plateforme.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-4">
+      <div class="metric-card">
+        <div class="metric-label">Total membres</div>
+        <div class="metric-value">{{ totalMembers() }}</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Utilisateurs</div>
+        <div class="metric-value">{{ totalUsers() }}</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Admins globaux</div>
+        <div class="metric-value">{{ totalGlobalAdmins() }}</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Admins site</div>
+        <div class="metric-value">{{ totalSiteAdmins() }}</div>
+      </div>
+    </div>
+
+    <div class="section-card mt-8 p-4">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <input
+          (input)="handleSearchInput(($any($event.target)).value)"
+          class="input-field-lg md:w-80"
+          placeholder="Rechercher un membre..." />
+
+        <select
+          (change)="handleRoleFilterChange(($any($event.target)).value)"
+          class="select-field md:w-56">
+          <option value="ALL">Tous les rôles</option>
+          <option value="USER">Utilisateurs</option>
+          <option value="ADMIN_GLOBAL">Admins globaux</option>
+          <option value="ADMIN_SITE">Admins site</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-shell">
+      <div class="table-scroll">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 text-left text-gray-600">
+          <tr>
+            <th class="px-4 py-4 font-semibold">Nom</th>
+            <th class="px-4 py-4 font-semibold">Matricule</th>
+            <th class="px-4 py-4 font-semibold">Email</th>
+            <th class="px-4 py-4 font-semibold">Téléphone</th>
+            <th class="px-4 py-4 font-semibold">Ville</th>
+            <th class="px-4 py-4 font-semibold">Site</th>
+            <th class="px-4 py-4 font-semibold">Niveau</th>
+            <th class="px-4 py-4 font-semibold">Rôle</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          <tr *ngFor="let user of filteredUsers()" class="border-t">
+            <td class="table-body-cell-strong">
+              {{ user.firstName }} {{ user.lastName }}
+            </td>
+            <td class="table-body-cell">#{{ user.matricule }}</td>
+            <td class="table-body-cell">{{ user.email || '—' }}</td>
+            <td class="table-body-cell">{{ user.phone || '—' }}</td>
+            <td class="table-body-cell">{{ user.city || '—' }}</td>
+            <td class="table-body-cell">{{ user.siteName || '—' }}</td>
+            <td class="table-body-cell">{{ user.level || '—' }}</td>
+            <td class="table-body-cell">
+                <span
+                  class="role-badge"
+                  [class]="getRoleBadgeClass(user.role)">
+                  {{ getRoleLabel(user.role) }}
+                </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredUsers().length === 0">
+            <td colspan="8" class="px-4 py-10 text-center text-gray-500">
+              Aucun membre trouvé.
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

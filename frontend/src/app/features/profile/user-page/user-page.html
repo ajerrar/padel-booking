@@ -1,0 +1,176 @@
+<div class="page-shell">
+  <div class="page-container">
+
+    <div class="page-header">
+      <app-page-header
+        title="Mon profil"
+        subtitle="Gère tes informations et tes réservations.">
+      </app-page-header>
+
+      <div class="flex flex-col gap-2 sm:flex-row">
+
+        <button
+          (click)="navigateToReservations()"
+          class="primary-button">
+          Mes réservations
+        </button>
+
+        <button
+          (click)="navigateToInvitations()"
+          class="secondary-button">
+          Mes invitations
+        </button>
+
+        <button
+          (click)="navigateToNotifications()"
+          class="relative secondary-button">
+          Mes notifications
+
+          <span
+            *ngIf="unreadNotificationsCount() > 0"
+            class="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-2 text-[11px] font-bold text-white">
+            {{ unreadNotificationsCount() }}
+          </span>
+        </button>
+
+        <button
+          (click)="logout()"
+          class="secondary-button">
+          Déconnexion
+        </button>
+
+      </div>
+    </div>
+
+    <div class="section-card-plain mt-8">
+
+      <div class="flex items-center gap-4">
+
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-2xl font-extrabold text-emerald-700">
+          {{ getInitials() }}
+        </div>
+
+        <div>
+          <div class="text-xl font-extrabold text-gray-900">
+            {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
+          </div>
+
+          <div class="mt-1 text-sm text-gray-600">
+            Matricule : <span class="font-semibold">#{{ currentUser()?.matricule }}</span>
+          </div>
+
+          <span class="mt-2 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            {{ getRoleLabel() }}
+          </span>
+        </div>
+
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+
+        <div class="sub-card">
+          <div class="field-label">Email</div>
+          <div class="field-value">
+            {{ currentUser()?.email }}
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="field-label">Téléphone</div>
+          <div class="field-value">
+            {{ currentUser()?.phone }}
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="field-label">Ville</div>
+          <div class="field-value">
+            {{ currentUser()?.city }}
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="field-label">Niveau</div>
+          <div class="field-value">
+            {{ currentUser()?.level }}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+
+      <div class="section-card-plain">
+        <div class="field-label">Réservations</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+      </div>
+
+      <div class="section-card-plain">
+        <div class="field-label">Heures jouées</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+      </div>
+
+      <div class="section-card-plain">
+        <div class="field-label">Clubs visités</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+      </div>
+
+    </div>
+
+    <div class="section-card-plain mt-8">
+
+      <h2 class="section-title">
+        Actions rapides
+      </h2>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-4">
+
+        <button
+          (click)="navigateToReservations()"
+          class="secondary-button-lg">
+          Voir mes réservations
+        </button>
+
+        <button
+          (click)="navigateToInvitations()"
+          class="secondary-button-lg">
+          Voir mes invitations
+        </button>
+
+        <button
+          (click)="navigateToNotifications()"
+          class="secondary-button-lg">
+          Voir mes notifications
+        </button>
+
+        <button
+          (click)="logout()"
+          class="secondary-button-lg">
+          Déconnexion
+        </button>
+
+      </div>
+
+      <div *ngIf="currentUser()?.role === 'AdminGlobal'" class="mt-6">
+        <a
+          routerLink="/admin-global"
+          class="text-sm font-semibold text-emerald-700 hover:underline">
+          Accéder au dashboard admin →
+        </a>
+      </div>
+
+      <div *ngIf="currentUser()?.role === 'AdminClub'" class="mt-4">
+        <a
+          routerLink="/admin-site"
+          class="text-sm font-semibold text-emerald-700 hover:underline">
+          Gérer mon site →
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</div>

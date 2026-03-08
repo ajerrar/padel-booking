@@ -1,0 +1,42 @@
+<div class="mt-4 flex items-center justify-between">
+  <div class="text-sm font-semibold text-gray-700">Date</div>
+  <input
+    type="date"
+    [value]="selectedDate"
+    (change)="onDateInput($event)"
+    class="input-field bg-white max-w-44"
+  />
+</div>
+
+<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+  <button
+    *ngFor="let slot of slots"
+    (click)="pick(slot)"
+    [disabled]="!slot.isAvailable"
+    class="rounded-2xl border p-4 text-left"
+    [class.bg-white]="slot.isAvailable"
+    [class.hover:shadow-sm]="slot.isAvailable"
+    [class.bg-gray-50]="!slot.isAvailable"
+    [class.cursor-not-allowed]="!slot.isAvailable"
+    [class.ring-2]="selectedTime === slot.time"
+    [class.ring-emerald-200]="selectedTime === slot.time"
+  >
+    <div class="text-xs text-gray-600">Créneau</div>
+
+    <div
+      class="mt-1 text-lg font-extrabold"
+      [class.text-gray-900]="slot.isAvailable"
+      [class.text-gray-400]="!slot.isAvailable">
+      {{ slot.time }}
+    </div>
+
+    <div
+      class="mt-2 inline-flex rounded-full px-2 py-1 text-xs font-semibold"
+      [class.bg-emerald-50]="slot.isAvailable"
+      [class.text-emerald-700]="slot.isAvailable"
+      [class.bg-gray-100]="!slot.isAvailable"
+      [class.text-gray-600]="!slot.isAvailable">
+      {{ slot.isAvailable ? 'Disponible' : 'Complet' }}
+    </div>
+  </button>
+</div>

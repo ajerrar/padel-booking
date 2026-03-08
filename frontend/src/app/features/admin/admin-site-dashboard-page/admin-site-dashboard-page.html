@@ -1,0 +1,158 @@
+<div class="page-shell">
+  <div class="page-container">
+
+    <div class="page-header">
+
+      <app-page-header
+        title="Admin Site"
+        [subtitle]="'Gestion du site : ' + siteName()">
+      </app-page-header>
+
+      <a
+        routerLink="/admin-site-members"
+        class="secondary-button">
+        Membres du site
+      </a>
+
+    </div>
+
+    <div *ngIf="infoMessage()" class="status-success mt-6">
+      {{ infoMessage() }}
+    </div>
+
+    <div *ngIf="errorMessage()" class="status-error mt-6">
+      {{ errorMessage() }}
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-4">
+
+      <app-stat-card
+        title="Chiffre d'affaires"
+        [value]="'€' + dashboardStats().totalRevenue">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Matches"
+        [value]="dashboardStats().totalMatches">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Joueurs"
+        [value]="dashboardStats().totalPlayers">
+      </app-stat-card>
+
+      <app-stat-card
+        title="Occupation"
+        [value]="dashboardStats().occupancyRate + '%'">
+      </app-stat-card>
+
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-2">
+
+      <div class="section-card">
+        <h2 class="section-title">
+          Fermeture site
+        </h2>
+
+        <div class="mt-4">
+          <div class="mb-2 text-sm font-semibold">Jours de fermeture hebdomadaire</div>
+
+          <div class="flex flex-wrap gap-2">
+            <button
+              *ngFor="let day of weekdayOptions"
+              type="button"
+              (click)="toggleClosedWeekday(day.value)"
+              class="rounded-full border px-4 py-2 text-sm font-semibold"
+              [class.bg-gray-900]="isWeekdayClosed(day.value)"
+              [class.text-white]="isWeekdayClosed(day.value)">
+              {{ day.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-4">
+
+          <input
+            type="date"
+            [ngModel]="selectedClosedDate()"
+            (ngModelChange)="selectedClosedDate.set($event)"
+            class="input-field-lg">
+
+        </div>
+
+        <button
+          (click)="addClosedDate()"
+          class="dark-button mt-3">
+          Ajouter
+        </button>
+
+        <div class="mt-6 space-y-2">
+
+          <div
+            *ngFor="let date of closedDates()"
+            class="flex justify-between rounded-xl bg-gray-50 p-3">
+
+            <span>{{ date }}</span>
+
+            <button
+              (click)="removeClosedDate(date)"
+              class="text-sm text-red-600">
+              supprimer
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="section-card">
+        <h2 class="section-title">
+          Terrains réservés
+        </h2>
+
+        <input
+          type="date"
+          [ngModel]="selectedScheduleDate()"
+          (ngModelChange)="handleScheduleDateChange($event)"
+          class="input-field-lg mt-3">
+
+        <div class="mt-6 space-y-3">
+
+          <div
+            *ngFor="let slot of reservedSlots()"
+            class="rounded-xl border p-4">
+
+            <div class="flex justify-between">
+
+              <div>
+
+                <div class="font-bold">
+                  {{ slot.courtName }} • {{ slot.time }}
+                </div>
+
+                <div class="text-xs text-gray-500">
+                  {{ slot.playersCount }}/4 joueurs
+                </div>
+
+              </div>
+
+              <button
+                (click)="cancelReservationByAdmin(slot.reservationId)"
+                class="text-sm text-red-600">
+                Annuler
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

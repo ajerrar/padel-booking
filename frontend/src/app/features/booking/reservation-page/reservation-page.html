@@ -1,0 +1,89 @@
+<div class="page-shell">
+  <div class="page-container-narrow">
+
+    <div class="page-header">
+      <div>
+        <div class="text-sm text-gray-600">
+          Accueil <span class="mx-1">›</span> Réservation
+        </div>
+        <h1 class="page-title">Réserver un terrain</h1>
+        <p class="page-subtitle">
+          Choisis ta date et ton créneau pour continuer.
+        </p>
+      </div>
+
+      <button
+        (click)="navigateBack()"
+        class="secondary-button">
+        ← Retour
+      </button>
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-2">
+
+      <div class="section-card-plain">
+        <h2 class="section-title">Récapitulatif</h2>
+
+        <div class="mt-5 space-y-3">
+          <div class="sub-card">
+            <div class="field-label">Club</div>
+            <div class="field-value">{{ selectedClubName() || '—' }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Terrain</div>
+            <div class="field-value">{{ selectedCourtName() || '—' }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Site</div>
+            <div class="field-value">{{ selectedSiteName() || '—' }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Prix total</div>
+            <div class="field-value">€{{ totalPrice() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card-plain">
+        <h2 class="section-title">Choix du créneau</h2>
+
+        <div class="mt-5 space-y-4">
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-gray-700">Date</label>
+            <input
+              type="date"
+              [ngModel]="selectedDate()"
+              (ngModelChange)="handleDateChange($event)"
+              class="input-field-lg" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-gray-700">Créneau</label>
+            <select
+              [ngModel]="selectedTime()"
+              (ngModelChange)="handleTimeChange($event)"
+              class="select-field">
+              <option value="">Choisir un créneau</option>
+              <option *ngFor="let slot of availableSlots()" [value]="slot">
+                {{ slot }}
+              </option>
+            </select>
+          </div>
+
+          <button
+            (click)="continueToPayment()"
+            [disabled]="!selectedDate() || !selectedTime()"
+            class="primary-button-lg w-full disabled:cursor-not-allowed disabled:opacity-50">
+            Continuer vers le paiement
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

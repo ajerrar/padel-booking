@@ -1,0 +1,69 @@
+<div class="page-shell">
+  <div class="page-container">
+
+    <div class="page-header">
+
+      <app-page-header
+        title="Clubs"
+        subtitle="Découvre les clubs disponibles et accède à leurs terrains.">
+      </app-page-header>
+
+      <button
+        (click)="navigateToHome()"
+        class="secondary-button">
+        ← Retour
+      </button>
+
+    </div>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-3" *ngIf="clubs.length > 0; else emptyState">
+
+      <div
+        *ngFor="let club of clubs"
+        class="section-card-plain hover:shadow-sm">
+
+        <div class="h-28 rounded-2xl bg-gradient-to-br from-emerald-100 to-sky-100"></div>
+
+        <div class="mt-5">
+
+          <div class="text-lg font-extrabold text-gray-900">
+            {{ club.name }}
+          </div>
+
+          <div class="mt-1 text-sm text-gray-600">
+            {{ club.location }} • {{ club.courts.length }} terrains
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span
+              *ngFor="let tag of getClubTags(club)"
+              class="badge-neutral">
+              {{ tag }}
+            </span>
+          </div>
+
+          <div class="mt-5">
+            <button
+              (click)="navigateToClubCourts(club.id)"
+              class="primary-button-lg w-full">
+              Voir les terrains
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <ng-template #emptyState>
+
+      <app-empty-state
+        title="Aucun club disponible"
+        message="Aucun club n'est disponible pour le moment.">
+      </app-empty-state>
+
+    </ng-template>
+
+  </div>
+</div>

@@ -1,0 +1,271 @@
+<div class="page-shell" *ngIf="court() as court; else notFound">
+  <div class="page-container">
+
+    <div class="page-header">
+      <div>
+        <div class="text-sm text-gray-600">
+          Accueil <span class="mx-1">›</span> Clubs <span class="mx-1">›</span>
+          {{ clubName() }}
+        </div>
+
+        <h1 class="page-title">Détail du terrain</h1>
+        <p class="page-subtitle">Choisis un créneau et confirme ta réservation.</p>
+      </div>
+
+      <button
+        (click)="backToCourts()"
+        class="secondary-button">
+        ← Retour aux terrains
+      </button>
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-3">
+
+      <div class="lg:col-span-2 overflow-hidden rounded-3xl border bg-white">
+        <div class="h-44 bg-gradient-to-br from-emerald-100 to-sky-100"></div>
+
+        <div class="p-6">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+
+              <div
+                class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                [class.bg-emerald-50]="court.status === 'libre'"
+                [class.text-emerald-700]="court.status === 'libre'"
+                [class.bg-red-50]="court.status !== 'libre'"
+                [class.text-red-700]="court.status !== 'libre'">
+                {{ court.status === 'libre' ? 'Libre' : 'Occupé' }} • {{ court.type }}
+              </div>
+
+              <h2 class="mt-3 text-2xl font-extrabold text-gray-900">{{ court.name }}</h2>
+
+              <p class="mt-1 text-sm text-gray-600">
+                {{ clubName() }} <span *ngIf="clubLocation() !== '—'">• {{ clubLocation() }}</span>
+              </p>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <span class="badge-neutral">Vestiaires</span>
+                <span class="badge-neutral">Parking</span>
+                <span class="badge-neutral">Douches</span>
+                <span class="badge-neutral">Location raquettes</span>
+              </div>
+            </div>
+
+            <div class="sub-card-bordered text-right">
+              <div class="field-label">Prix par joueur</div>
+              <div class="mt-1 text-2xl font-extrabold text-gray-900">€{{ pricePerPlayer() }}</div>
+              <div class="text-xs text-gray-600">match total €{{ matchTotal() }}</div>
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <div class="flex items-center justify-between">
+              <div class="text-lg font-extrabold text-gray-900">Créneaux disponibles</div>
+              <div class="text-sm text-gray-600">
+                Sélection :
+                <span class="font-semibold text-gray-900">
+                  {{ selectedSlot()?.time ?? '—' }}
+                </span>
+              </div>
+            </div>
+
+            <div
+              *ngIf="isClosed()"
+              class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              Site fermé pour cette date
+              <span *ngIf="closureReason()">— {{ closureReason() }}</span>
+            </div>
+
+            <div
+              *ngIf="!isClosed() && slots().length === 0"
+              class="mt-4 rounded-2xl border bg-gray-50 px-4 py-3 text-sm text-gray-600">
+              Aucun créneau disponible pour cette date.
+            </div>
+
+            <app-slot-list
+              *ngIf="!isClosed()"
+              [selectedDate]="selectedDate()"
+              [slots]="slots()"
+              [selectedTime]="selectedSlot()?.time ?? null"
+              (dateChange)="onDateChange($event)"
+              (slotSelect)="select($event)">
+            </app-slot-list>
+          </div>
+
+          <div class="mt-8 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-2xl border bg-white p-5">
+              <div class="text-sm font-extrabold text-gray-900">Adresse</div>
+              <p class="mt-2 text-sm text-gray-600">
+                {{ clubLocation() !== '—' ? clubLocation() : 'Adresse à compléter' }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl border bg-white p-5">
+              <div class="text-sm font-extrabold text-gray-900">Règles</div>
+              <p class="mt-2 text-sm text-gray-600">
+                Annulation selon politique du club • Arriver 10 min avant.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="section-card-plain h-full p-8">
+        <div class="section-title">Récap réservation</div>
+        <p class="page-subtitle">Vérifie les infos avant confirmation.</p>
+
+        <div class="mt-5 space-y-3">
+          <div class="sub-card">
+            <div class="field-label">Club</div>
+            <div class="field-value">{{ clubName() }}</div>
+            <div class="text-xs text-gray-600">{{ clubLocation() }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Terrain</div>
+            <div class="field-value">
+              {{ court.name }} • {{ court.type }}
+            </div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Créneau</div>
+            <div class="field-value">
+              {{ selectedSlot()?.time ? (selectedSlot()?.time + ' → ' + nextHourLabel(selectedSlot()!.time)) : '—' }}
+            </div>
+          </div>
+
+          <div class="rounded-2xl border p-4">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">Montant du match</span>
+              <span class="font-extrabold text-gray-900">€{{ matchTotal() }}</span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm">
+              <span class="text-gray-600">Ta part maintenant</span>
+              <span class="font-extrabold text-gray-900">€{{ pricePerPlayer() }}</span>
+            </div>
+            <div class="mt-3 border-t pt-3 flex items-center justify-between">
+              <span class="text-sm font-semibold text-gray-700">À payer</span>
+              <span class="text-xl font-extrabold text-gray-900">€{{ totalPrice() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          (click)="confirm()"
+          [disabled]="!selectedSlot()"
+          class="mt-5 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white"
+          [class.bg-emerald-600]="!!selectedSlot() && !isClosed()"
+          [class.hover:bg-emerald-700]="!!selectedSlot() && !isClosed()"
+          [class.bg-gray-300]="!selectedSlot() || isClosed()"
+          [class.cursor-not-allowed]="!selectedSlot() || isClosed()">
+          Confirmer la réservation
+        </button>
+
+        <div
+          *ngIf="showConfirmModal()"
+          (click)="closeConfirm()"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+
+          <div
+            class="w-full max-w-lg rounded-3xl bg-white shadow-xl"
+            (click)="$event.stopPropagation()">
+
+            <div class="p-6">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="badge-success inline-flex items-center gap-2">
+                    Confirmation
+                  </div>
+                  <h3 class="mt-3 text-xl font-extrabold text-gray-900">Réservation prête ✅</h3>
+                  <p class="mt-2 text-sm text-gray-600">
+                    Vérifie une dernière fois les détails avant de valider.
+                  </p>
+                </div>
+
+                <button
+                  (click)="closeConfirm()"
+                  class="secondary-button">
+                  ✕
+                </button>
+              </div>
+
+              <div class="mt-5 grid gap-3">
+                <div class="sub-card">
+                  <div class="field-label">Club</div>
+                  <div class="field-value">
+                    {{ clubName() }}
+                  </div>
+                </div>
+
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <div class="sub-card">
+                    <div class="field-label">Terrain</div>
+                    <div class="field-value">
+                      {{ courtName() }}
+                    </div>
+                  </div>
+
+                  <div class="sub-card">
+                    <div class="field-label">Créneau</div>
+                    <div class="field-value">
+                      {{ selectedSlot()?.time ? (selectedSlot()!.time + ' → ' + nextHourLabel(selectedSlot()!.time)) : '—' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border p-4">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600">Match total</span>
+                    <span class="text-lg font-extrabold text-gray-900">€{{ matchTotal() }}</span>
+                  </div>
+                  <div class="mt-2 flex items-center justify-between text-sm">
+                    <span class="text-gray-600">Ta part à payer</span>
+                    <span class="text-lg font-extrabold text-gray-900">€{{ totalPrice() }}</span>
+                  </div>
+                  <p class="mt-2 text-xs text-gray-500">Email + QR code envoyés après validation.</p>
+                </div>
+              </div>
+
+              <div class="mt-6 space-y-3">
+                <button
+                  (click)="closeConfirm()"
+                  class="secondary-button-lg w-full">
+                  Annuler
+                </button>
+
+                <button
+                  (click)="validateReservation()"
+                  class="primary-button-lg w-full">
+                  Valider
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <p class="mt-3 text-xs text-gray-500">
+          En confirmant, tu acceptes les conditions du club et la politique d’annulation.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="page-shell">
+    <div class="mx-auto max-w-screen-md px-4">
+      <div class="rounded-2xl border bg-white p-6">
+        <h2 class="text-xl font-extrabold text-gray-900">Terrain introuvable</h2>
+        <p class="mt-2 text-sm text-gray-600">Vérifie l’URL ou reviens à la liste.</p>
+        <button
+          (click)="backToCourts()"
+          class="secondary-button mt-4">
+          ← Retour
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

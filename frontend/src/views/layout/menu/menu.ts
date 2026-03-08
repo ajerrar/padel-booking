@@ -1,7 +1,7 @@
 ﻿import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { UserService } from '../../../services/user-service';
+import { UserService } from '../../../app/core/services/user-service';
 
 @Component({
   selector: 'app-menu',
@@ -18,16 +18,28 @@ export class Menu {
 
   me = this.userService.currentUser;
 
+  readonly routes = {
+    home: '/home',
+    clubs: '/clubs',
+    myReservations: '/my-reservations',
+    login: '/login',
+    register: '/register',
+    profile: '/user',
+    adminGlobal: '/admin-global',
+    adminSite: '/admin-site',
+    publicMatches: '/matches-publics',
+  };
+
   initials = computed(() => {
-    const u = this.me();
-    if (!u) return '—';
-    return `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase();
+    const user = this.me();
+    if (!user) return '—';
+    return `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
   roleLabel = computed(() => {
-    const r = this.me()?.role;
-    if (r === 'AdminGlobal') return 'Admin global';
-    if (r === 'AdminClub') return 'Admin site';
+    const role = this.me()?.role;
+    if (role === 'AdminGlobal') return 'Admin global';
+    if (role === 'AdminClub') return 'Admin site';
     return 'Joueur';
   });
 
@@ -42,6 +54,6 @@ export class Menu {
   logout() {
     this.userService.logout();
     this.closeMobile();
-    this.router.navigate(['/home'], { replaceUrl: true });
+    this.router.navigate([this.routes.home], { replaceUrl: true });
   }
 }

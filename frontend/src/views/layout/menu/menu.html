@@ -2,7 +2,7 @@
   <div class="flex h-16 items-center justify-between gap-3">
 
     <!-- Brand -->
-    <a routerLink="/home" class="flex items-center gap-2" (click)="closeMobile()">
+    <a [routerLink]="routes.home" class="flex items-center gap-2" (click)="closeMobile()">
       <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white font-extrabold">
         PB
       </span>
@@ -13,10 +13,10 @@
 
     <!-- Desktop nav -->
     <nav class="hidden items-center gap-6 md:flex">
-      <a routerLink="/home" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Accueil</a>
-      <a routerLink="/clubs" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Clubs</a>
-      <a routerLink="/my-reservations" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Mes réservations</a>
-      <a routerLink="/about" class="text-sm font-semibold text-gray-700 hover:text-gray-900">À propos</a>
+      <a [routerLink]="routes.home" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Accueil</a>
+      <a [routerLink]="routes.clubs" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Clubs</a>
+      <a [routerLink]="routes.myReservations" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Mes réservations</a>
+      <a [routerLink]="routes.publicMatches" class="text-sm font-semibold text-gray-700 hover:text-gray-900">Matches publics</a>
     </nav>
 
     <!-- Desktop right -->
@@ -25,14 +25,14 @@
       <!-- Not logged -->
       <ng-container *ngIf="!me(); else loggedDesktop">
         <a
-          routerLink="/login"
+          [routerLink]="routes.login"
           class="rounded-xl px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
         >
           Se connecter
         </a>
 
         <a
-          routerLink="/register"
+          [routerLink]="routes.register"
           class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           S’inscrire
@@ -43,7 +43,7 @@
       <ng-template #loggedDesktop>
         <div class="flex items-center gap-3 rounded-2xl border bg-white px-3 py-2">
 
-          <div class="h-9 w-9 rounded-xl bg-emerald-100 flex items-center justify-center font-extrabold text-emerald-700">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 font-extrabold text-emerald-700">
             {{ initials() }}
           </div>
 
@@ -58,7 +58,7 @@
 
           <div class="ml-2 flex items-center gap-2">
             <a
-              routerLink="/user"
+              [routerLink]="routes.profile"
               class="rounded-xl border bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50"
             >
               Profil
@@ -66,7 +66,7 @@
 
             <a
               *ngIf="me()?.role === 'AdminGlobal'"
-              routerLink="/admin-global"
+              [routerLink]="routes.adminGlobal"
               class="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
             >
               Admin
@@ -74,7 +74,7 @@
 
             <a
               *ngIf="me()?.role === 'AdminClub'"
-              routerLink="/admin-site"
+              [routerLink]="routes.adminSite"
               class="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
             >
               Gestion site
@@ -110,74 +110,91 @@
   <div class="mx-auto max-w-screen-xl px-4 py-4">
 
     <!-- Logged user card -->
-    <div *ngIf="me() as u" class="mb-4 rounded-2xl border bg-gray-50 p-4">
+    <div *ngIf="me() as user" class="mb-4 rounded-2xl border bg-gray-50 p-4">
       <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center font-extrabold text-emerald-700">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 font-extrabold text-emerald-700">
           {{ initials() }}
         </div>
         <div class="min-w-0">
           <div class="truncate text-sm font-extrabold text-gray-900">
-            {{ u.firstName }} {{ u.lastName }}
+            {{ user.firstName }} {{ user.lastName }}
           </div>
           <div class="text-xs text-gray-600">{{ roleLabel() }}</div>
         </div>
       </div>
 
       <div class="mt-3 grid grid-cols-2 gap-2">
-        <a routerLink="/user" (click)="closeMobile()"
-           class="rounded-xl border bg-white px-3 py-2 text-center text-xs font-semibold hover:bg-gray-50">
+        <a
+          [routerLink]="routes.profile"
+          (click)="closeMobile()"
+          class="rounded-xl border bg-white px-3 py-2 text-center text-xs font-semibold hover:bg-gray-50">
           Profil
         </a>
 
-        <button (click)="logout()"
-                class="rounded-xl border bg-white px-3 py-2 text-center text-xs font-semibold hover:bg-gray-50">
+        <button
+          (click)="logout()"
+          class="rounded-xl border bg-white px-3 py-2 text-center text-xs font-semibold hover:bg-gray-50">
           Déconnexion
         </button>
       </div>
 
-      <a *ngIf="u.role === 'AdminGlobal'"
-         routerLink="/admin-global"
-         (click)="closeMobile()"
-         class="mt-2 block rounded-xl bg-slate-900 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-slate-800">
+      <a
+        *ngIf="user.role === 'AdminGlobal'"
+        [routerLink]="routes.adminGlobal"
+        (click)="closeMobile()"
+        class="mt-2 block rounded-xl bg-slate-900 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-slate-800">
         Admin global
       </a>
 
-      <a *ngIf="u.role === 'AdminClub'"
-         routerLink="/admin-site"
-         (click)="closeMobile()"
-         class="mt-2 block rounded-xl bg-slate-900 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-slate-800">
+      <a
+        *ngIf="user.role === 'AdminClub'"
+        [routerLink]="routes.adminSite"
+        (click)="closeMobile()"
+        class="mt-2 block rounded-xl bg-slate-900 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-slate-800">
         Gestion site
       </a>
     </div>
 
     <!-- Links -->
     <nav class="grid gap-2">
-      <a routerLink="/home" (click)="closeMobile()"
-         class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+      <a
+        [routerLink]="routes.home"
+        (click)="closeMobile()"
+        class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
         Accueil
       </a>
-      <a routerLink="/clubs" (click)="closeMobile()"
-         class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+      <a
+        [routerLink]="routes.clubs"
+        (click)="closeMobile()"
+        class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
         Clubs
       </a>
-      <a routerLink="/my-reservations" (click)="closeMobile()"
-         class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+      <a
+        [routerLink]="routes.myReservations"
+        (click)="closeMobile()"
+        class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
         Mes réservations
       </a>
-      <a routerLink="/about" (click)="closeMobile()"
-         class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-        À propos
+      <a
+        [routerLink]="routes.publicMatches"
+        (click)="closeMobile()"
+        class="rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+        Matches publics
       </a>
     </nav>
 
     <!-- Not logged buttons -->
     <div *ngIf="!me()" class="mt-4 grid gap-2">
-      <a routerLink="/login" (click)="closeMobile()"
-         class="rounded-xl border px-3 py-2 text-center text-sm font-semibold hover:bg-gray-50">
+      <a
+        [routerLink]="routes.login"
+        (click)="closeMobile()"
+        class="rounded-xl border px-3 py-2 text-center text-sm font-semibold hover:bg-gray-50">
         Se connecter
       </a>
-      <a routerLink="/register" (click)="closeMobile()"
-         class="rounded-xl bg-emerald-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700">
+      <a
+        [routerLink]="routes.register"
+        (click)="closeMobile()"
+        class="rounded-xl bg-emerald-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700">
         S’inscrire
       </a>
     </div>

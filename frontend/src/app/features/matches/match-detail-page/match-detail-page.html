@@ -1,0 +1,208 @@
+<div class="page-shell" *ngIf="match() as match; else notFound">
+  <div class="page-container">
+
+    <div class="page-header">
+      <div>
+        <div class="text-sm text-gray-600">
+          Accueil <span class="mx-1">›</span> Match
+        </div>
+        <h1 class="page-title">Détail du match</h1>
+        <p class="page-subtitle">
+          {{ match.clubName }} • {{ match.courtName }} • {{ match.date }} • {{ match.time }}
+        </p>
+      </div>
+
+      <button
+        (click)="navigateBack()"
+        class="secondary-button">
+        ← Retour
+      </button>
+    </div>
+
+    <div *ngIf="successMessage()" class="status-success mt-6">
+      {{ successMessage() }}
+    </div>
+
+    <div *ngIf="errorMessage()" class="status-error mt-6">
+      {{ errorMessage() }}
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-3">
+
+      <div class="section-card-plain lg:col-span-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <span
+            class="rounded-full px-3 py-1 text-xs font-semibold"
+            [class.bg-sky-50]="match.visibility === 'PUBLIC'"
+            [class.text-sky-700]="match.visibility === 'PUBLIC'"
+            [class.bg-violet-50]="match.visibility === 'PRIVATE'"
+            [class.text-violet-700]="match.visibility === 'PRIVATE'">
+            {{ match.visibility === 'PUBLIC' ? 'Match public' : 'Match privé' }}
+          </span>
+
+          <span class="badge-neutral">
+            {{ getPlayersLabel() }}
+          </span>
+
+          <span class="badge-neutral">
+            €{{ match.total }} total
+          </span>
+
+          <span class="badge-neutral">
+            €{{ getAmountPerPlayer() }} / joueur
+          </span>
+        </div>
+
+        <div class="mt-6">
+          <div class="section-title">Joueurs inscrits</div>
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div
+              *ngFor="let player of match.players"
+              class="rounded-2xl border bg-gray-50 p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-semibold text-gray-900">{{ player.matricule }}</div>
+                  <div class="mt-1 text-xs text-gray-600">
+                    {{ player.matricule === match.organizerMatricule ? 'Organisateur' : 'Participant' }}
+                  </div>
+                </div>
+
+                <span
+                  class="rounded-full px-2 py-1 text-xs font-semibold"
+                  [class.bg-emerald-50]="player.paid"
+                  [class.text-emerald-700]="player.paid"
+                  [class.bg-amber-50]="!player.paid"
+                  [class.text-amber-700]="!player.paid">
+                  {{ player.paid ? 'Payé' : 'En attente' }}
+                </span>
+              </div>
+            </div>
+
+            <div
+              *ngFor="let emptySlot of getEmptySlots()"
+              class="rounded-2xl border border-dashed bg-white p-4">
+              <div class="text-sm font-semibold text-gray-700">Place libre</div>
+              <div class="mt-1 text-xs text-gray-500">Joueur {{ emptySlot + (match.players?.length ?? 0) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8" *ngIf="match.visibility === 'PRIVATE'">
+          <div class="section-title">Invitations email</div>
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2" *ngIf="match.invitedEmails?.length; else noInvites">
+            <div
+              *ngFor="let email of match.invitedEmails"
+              class="rounded-2xl border bg-gray-50 p-4">
+              <div class="text-sm font-semibold text-gray-900">{{ email }}</div>
+              <div class="mt-1 text-xs text-gray-600">Invitation enregistrée</div>
+            </div>
+          </div>
+
+          <ng-template #noInvites>
+            <div class="mt-4 rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">
+              Aucune invitation email enregistrée.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="section-card-plain h-fit">
+        <div class="section-title">Actions</div>
+        <p class="mt-2 text-sm text-gray-600">Gère ton match depuis cette page.</p>
+
+        <div class="mt-5 space-y-3">
+          <div class="sub-card">
+            <div class="field-label">Club</div>
+            <div class="field-value">{{ match.clubName }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Terrain</div>
+            <div class="field-value">{{ match.courtName }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Date</div>
+            <div class="field-value">{{ match.date }}</div>
+          </div>
+
+          <div class="sub-card">
+            <div class="field-label">Créneau</div>
+            <div class="field-value">{{ match.time }}</div>
+          </div>
+
+          <button
+            *ngIf="canJoinPublicMatch()"
+            (click)="joinPublicMatch()"
+            class="primary-button-lg w-full">
+            Rejoindre le match — €{{ getAmountPerPlayer() }}
+          </button>
+
+          <button
+            *ngIf="canPayPrivateSeat()"
+            (click)="payPrivateInvitationSeat()"
+            class="w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-700">
+            Payer ma place — €{{ getAmountPerPlayer() }}
+          </button>
+
+          <div *ngIf="canInvitePlayers()" class="rounded-2xl border p-4">
+            <div class="text-sm font-extrabold text-gray-900">Inviter des joueurs</div>
+            <p class="mt-1 text-xs text-gray-600">Ajoute jusqu’à 3 emails.</p>
+
+            <div class="mt-4 grid gap-3">
+              <input
+                [(ngModel)]="inviteEmail1"
+                class="input-field-lg"
+                placeholder="invite1@mail.com" />
+
+              <input
+                [(ngModel)]="inviteEmail2"
+                class="input-field-lg"
+                placeholder="invite2@mail.com" />
+
+              <input
+                [(ngModel)]="inviteEmail3"
+                class="input-field-lg"
+                placeholder="invite3@mail.com" />
+            </div>
+
+            <button
+              (click)="sendMatchInvitations()"
+              class="dark-button-lg mt-4 w-full">
+              Enregistrer les invitations
+            </button>
+          </div>
+
+          <div *ngIf="isCurrentUserParticipant()"
+               class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            Tu participes déjà à ce match.
+          </div>
+
+          <div *ngIf="isComplete()"
+               class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+            Match complet.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="page-shell">
+    <div class="mx-auto max-w-screen-md px-4">
+      <div class="rounded-2xl border bg-white p-6">
+        <h2 class="text-xl font-extrabold text-gray-900">Match introuvable</h2>
+        <p class="mt-2 text-sm text-gray-600">Vérifie l’URL ou reviens à la liste.</p>
+        <button
+          (click)="navigateBack()"
+          class="secondary-button mt-4">
+          ← Retour
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

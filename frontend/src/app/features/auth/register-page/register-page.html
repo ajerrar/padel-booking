@@ -1,0 +1,107 @@
+<div class="page-shell">
+  <div class="page-container-narrow">
+
+    <div class="mx-auto max-w-2xl">
+      <div class="section-card-plain">
+
+        <div class="text-center">
+          <h1 class="page-title">Créer un compte</h1>
+          <p class="page-subtitle">
+            Inscris-toi pour réserver, rejoindre des matches et gérer ton profil.
+          </p>
+        </div>
+
+        <div *ngIf="errorMessage()" class="status-error mt-6">
+          {{ errorMessage() }}
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="submitRegistration()" class="mt-6 space-y-4">
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Prénom</label>
+              <input formControlName="firstName" class="input-field-lg" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Nom</label>
+              <input formControlName="lastName" class="input-field-lg" />
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Email</label>
+              <input formControlName="email" class="input-field-lg" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Téléphone</label>
+              <input formControlName="phone" class="input-field-lg" />
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Ville</label>
+              <input formControlName="city" class="input-field-lg" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Niveau</label>
+              <select formControlName="level" class="select-field">
+                <option value="Débutant">Débutant</option>
+                <option value="Intermédiaire">Intermédiaire</option>
+                <option value="Avancé">Avancé</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Type de membre</label>
+              <select formControlName="memberType" class="select-field">
+                <option value="FREE">FREE</option>
+                <option value="SITE">SITE</option>
+                <option value="GLOBAL">GLOBAL</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-gray-700">Rôle</label>
+              <select formControlName="role" class="select-field">
+                <option value="User">Utilisateur</option>
+                <option value="AdminClub">Admin site</option>
+                <option value="AdminGlobal">Admin global</option>
+              </select>
+            </div>
+          </div>
+
+          <div *ngIf="isSiteMember()">
+            <label class="mb-2 block text-sm font-semibold text-gray-700">Nom du site</label>
+            <input
+              formControlName="siteName"
+              class="input-field-lg"
+              placeholder="Nom du site" />
+          </div>
+
+          <button
+            type="submit"
+            class="primary-button-lg w-full">
+            Créer mon compte
+          </button>
+
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-600">
+          Déjà un compte ?
+          <a routerLink="/login" class="font-semibold text-emerald-700 hover:underline">
+            Se connecter
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

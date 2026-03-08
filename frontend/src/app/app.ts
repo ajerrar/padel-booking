@@ -3,7 +3,8 @@ import { RouterOutlet } from '@angular/router';
 import { Footer } from '../views/layout/footer/footer';
 import { Header } from '../views/layout/header/header';
 import { Menu } from '../views/layout/menu/menu';
-import { UserService } from '../services/user-service';
+import { UserService } from './core/services/user-service';
+import { NotificationService } from './core/services/notification-service';
 
 
 @Component({
@@ -16,6 +17,12 @@ export class App {
   protected readonly title = signal('padel-booking');
 
   private userService = inject(UserService);
+  private notificationService = inject(NotificationService);
+  toast = this.notificationService.toast;
+
+  closeToast() {
+    this.notificationService.clearToast();
+  }
 
   constructor() {
     // ✅ seed admins une seule fois

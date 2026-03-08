@@ -1,0 +1,187 @@
+<div class="page-shell">
+  <div class="page-container">
+
+    <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <div>
+        <div class="text-sm text-gray-600">
+          Accueil <span class="mx-1">›</span> Terrains
+        </div>
+        <h1 class="mt-2 text-3xl font-extrabold text-gray-900">
+          {{ clubName() }}
+        </h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Résultats pour <span class="font-semibold text-gray-900">{{ selectedDate() }}</span>
+          à <span class="font-semibold text-gray-900">{{ effectiveSelectedTime() || '—' }}</span>
+        </p>
+      </div>
+
+      <button
+        (click)="goHome()"
+        class="secondary-button">
+        ← Retour
+      </button>
+    </div>
+
+    <div
+      *ngIf="isClosed()"
+      class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+      Site fermé pour cette date
+      <span *ngIf="closureReason()">— {{ closureReason() }}</span>
+    </div>
+
+    <div *ngIf="!isClosed() && siteSlots().length > 0" class="mt-6">
+      <div class="text-sm font-semibold text-gray-900">Créneaux du site pour cette date</div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <span
+          *ngFor="let slot of siteSlots()"
+          class="rounded-full px-3 py-1 text-xs font-semibold"
+          [class.bg-emerald-50]="slot === effectiveSelectedTime()"
+          [class.text-emerald-700]="slot === effectiveSelectedTime()"
+          [class.bg-gray-100]="slot !== effectiveSelectedTime()"
+          [class.text-gray-700]="slot !== effectiveSelectedTime()">
+          {{ slot }}
+        </span>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-lg font-extrabold text-gray-900">Terrains disponibles</div>
+          <p class="mt-1 text-sm text-gray-600">Choisis un terrain libre pour ce créneau.</p>
+        </div>
+
+        <div class="text-sm text-gray-600">
+          {{ availableCourts().length }} terrain(s)
+        </div>
+      </div>
+
+      <div class="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3" *ngIf="availableCourts().length; else noCourts">
+
+        <div
+          *ngFor="let court of availableCourts()"
+          class="rounded-2xl border bg-white p-5 hover:shadow-sm cursor-pointer"
+          (click)="goToDetail(court)">
+
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="font-extrabold text-gray-800">{{ court.name }}</div>
+              <div class="mt-1 text-xs text-gray-600">{{ court.type }}</div>
+            </div>
+
+            <span class="badge-success">
+              Disponible
+            </span>
+          </div>
+
+          <div class="mt-4 overflow-hidden rounded-2xl">
+            <img
+              [src]="getClubImage()"
+              alt="Image du terrain"
+              class="h-56 w-full rounded-2xl object-cover"
+            />
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="badge-neutral">
+              {{ effectiveSelectedTime() }}
+            </span>
+            <span class="badge-neutral">
+              {{ selectedDate() }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <ng-template #noCourts>
+        <div class="section-card-plain mt-5">
+          <div class="text-sm font-semibold text-gray-900">Aucun terrain disponible</div>
+          <p class="mt-1 text-sm text-gray-600">
+            <ng-container *ngIf="isClosed(); else tryAnother">
+              Le site est fermé pour cette date.
+            </ng-container>
+            <ng-template #tryAnother>
+              Essaie une autre heure ou une autre date.
+            </ng-template>
+          </p>
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="mt-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-lg font-extrabold text-gray-900">Matches publics disponibles</div>
+          <p class="mt-1 text-sm text-gray-600">Rejoins directement un match déjà créé.</p>
+        </div>
+
+        <div class="text-sm text-gray-600">
+          {{ publicMatches().length }} match(es)
+        </div>
+      </div>
+
+      <div class="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3" *ngIf="publicMatches().length; else noMatches">
+
+        <div
+          *ngFor="let match of publicMatches()"
+          class="rounded-2xl border bg-white p-5 hover:shadow-sm cursor-pointer"
+          (click)="goToMatch(match)">
+
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="font-extrabold text-gray-800">{{ match.courtName }}</div>
+              <div class="mt-1 text-xs text-gray-600">Match public</div>
+            </div>
+
+            <span class="badge-info">
+              {{ playersLabel(match) }}
+            </span>
+          </div>
+
+          <div class="mt-4 overflow-hidden rounded-2xl">
+            <img
+              [src]="getClubImage()"
+              alt="Image du terrain"
+              class="h-56 w-full rounded-2xl object-cover"
+            />
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="badge-neutral">
+              {{ match.time }}
+            </span>
+
+            <span class="badge-info">
+              Match public
+            </span>
+
+            <span class="badge-neutral">
+              {{ playersLabel(match) }}
+            </span>
+
+            <span class="badge-neutral">
+              €{{ match.total }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <ng-template #noMatches>
+        <div class="section-card-plain mt-5">
+          <div class="text-sm font-semibold text-gray-900">Aucun match public pour ce créneau</div>
+          <p class="mt-1 text-sm text-gray-600">
+            <ng-container *ngIf="isClosed(); else createPublic">
+              Le site est fermé pour cette date.
+            </ng-container>
+            <ng-template #createPublic>
+              Si tu veux, réserve un terrain et crée ton propre match public.
+            </ng-template>
+          </p>
+        </div>
+      </ng-template>
+    </div>
+
+  </div>
+</div>
