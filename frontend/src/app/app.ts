@@ -1,8 +1,8 @@
 import { Component, signal , inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Footer } from '../views/layout/footer/footer';
-import { Header } from '../views/layout/header/header';
-import { Menu } from '../views/layout/menu/menu';
+import { Footer } from './layout/footer/footer';
+import { Header } from './layout/header/header';
+import { Menu } from './layout/menu/menu';
 import { UserService } from './core/services/user-service';
 import { NotificationService } from './core/services/notification-service';
 

@@ -21,6 +21,11 @@
             <div class="field-value">{{ reference() }}</div>
           </div>
 
+          <div *ngIf="outstandingDebt() > 0">
+            <div class="field-label">Ancien solde réglé</div>
+            <div class="field-value text-red-600">€{{ outstandingDebt() }}</div>
+          </div>
+
           <div>
             <div class="field-label">Montant payé</div>
             <div class="field-value">€{{ total() }}</div>
@@ -38,7 +43,7 @@
 
           <div>
             <div class="field-label">Date</div>
-            <div class="field-value">{{ date() || '—' }}</div>
+            <div class="field-value">{{ formatDisplayDate(date()) }}</div>
           </div>
 
           <div>

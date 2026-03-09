@@ -2,24 +2,27 @@
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { UserService, MemberType, Role } from '../../../core/services/user-service';
+import { UserService, MemberType } from '../../../core/services/user-service';
+import { ClubService } from '../../../core/services/club.service';
 
 @Component({
   selector: 'app-register-page',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register-page.html',
-  styleUrls: ['./register-page.css'],
 })
 export class RegisterPage {
-  private formBuilder = inject(FormBuilder);
+  private fb = inject(FormBuilder);
   private router = inject(Router);
   private userService = inject(UserService);
+  private clubService = inject(ClubService);
 
   errorMessage = signal('');
   submitted = signal(false);
 
-  registerForm = this.formBuilder.nonNullable.group({
+  clubs = this.clubService.getClubs();
+
+  form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
@@ -27,41 +30,45 @@ export class RegisterPage {
     city: ['Bruxelles', [Validators.required]],
     level: ['Débutant', [Validators.required]],
     memberType: ['FREE' as MemberType, [Validators.required]],
-    role: ['User' as Role, [Validators.required]],
     siteName: [''],
   });
 
-  submitRegistration() {
-    this.errorMessage.set('');
-    this.submitted.set(true);
+  get isSiteMember(): boolean {
+    return this.form.controls.memberType.value === 'SITE';
+  }
 
-    if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
+  submit() {
+    this.submitted.set(true);
+    this.errorMessage.set('');
+
+    const memberType = this.form.controls.memberType.value;
+    const siteName = this.form.controls.siteName.value?.trim() || '';
+
+    if (memberType === 'SITE' && !siteName) {
+      this.errorMessage.set('Sélectionne un club.');
       return;
     }
 
-    const formValue = this.registerForm.getRawValue();
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     try {
       this.userService.register({
-        firstName: formValue.firstName,
-        lastName: formValue.lastName,
-        email: formValue.email,
-        phone: formValue.phone,
-        city: formValue.city,
-        level: formValue.level,
-        memberType: formValue.memberType,
-        role: formValue.role,
-        siteName: formValue.siteName?.trim() || undefined,
+        firstName: this.form.controls.firstName.value.trim(),
+        lastName: this.form.controls.lastName.value.trim(),
+        email: this.form.controls.email.value.trim().toLowerCase(),
+        phone: this.form.controls.phone.value.trim(),
+        city: this.form.controls.city.value.trim(),
+        level: this.form.controls.level.value.trim(),
+        memberType,
+        siteName: memberType === 'SITE' ? siteName : undefined,
       });
 
       this.router.navigate(['/user']);
     } catch (error: any) {
       this.errorMessage.set(error?.message ?? 'Erreur lors de l’inscription.');
     }
-  }
-
-  isSiteMember(): boolean {
-    return this.registerForm.getRawValue().memberType === 'SITE';
   }
 }

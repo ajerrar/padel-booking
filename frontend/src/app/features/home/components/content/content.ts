@@ -1,86 +1,61 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CourtService } from '../../../../core/services/court.service';
-import { CourtListModel } from '../../../../models/court.model';
+import { ClubService, Club } from '../../../../core/services/club.service';
 import { ReservationService } from '../../../../core/services/reservation-service';
 import { ReservationModel } from '../../../../models/reservation.model';
 import { UserService } from '../../../../core/services/user-service';
 import { SlotPolicyService } from '../../../../core/services/slot-policy.service';
 import {
-  getAmountPerPlayer,
   getPlayersLabel,
   getRemainingPlaces,
 } from '../../../../core/utils/match.utils';
-
-type MemberType = 'GLOBAL' | 'SITE' | 'FREE';
+import { getTodayIso } from '../../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-content',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './content.html',
-  styleUrls: ['./content.css'],
 })
 export class Content {
   private router = inject(Router);
-  private courtService = inject(CourtService);
+  private clubService = inject(ClubService);
   private reservationService = inject(ReservationService);
   private userService = inject(UserService);
   private slotPolicyService = inject(SlotPolicyService);
 
-  courtList: CourtListModel[] = this.courtService.getterrains();
+  clubList: Club[] = this.clubService.getClubs();
 
-  searchQuery = '';
-  selectedCourtId = '';
-  selectedDate = this.getTodayIso();
+  selectedClubId = '';
+  selectedDate = getTodayIso();
   selectedTime = '';
 
-  filteredCourts: CourtListModel[] = this.courtList;
+  errorMessage = signal('');
   currentUser = this.userService.currentUser;
 
   constructor() {
     this.refreshSelectedTime();
   }
 
-  filterByName() {
-    this.filteredCourts = this.courtList.filter(court =>
-      court.name.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
-  }
-
-  filterByType() {
-    this.filteredCourts = this.courtList.filter(court =>
-      court.type.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
-  }
-
-  filterByCourt() {
-    if (this.selectedCourtId === '') {
-      this.filteredCourts = this.courtList;
-      return;
-    }
-
-    const selectedId = Number(this.selectedCourtId);
-    this.filteredCourts = this.courtList.filter(court => court.id === selectedId);
-  }
-
   getAvailableTimes(): string[] {
-    const clubId = Number(this.selectedCourtId);
-    if (!clubId) return [];
+    const clubId = Number(this.selectedClubId);
+    if (!clubId || !this.selectedDate) return [];
 
-    const clubName = this.courtService.getterrains().find(court => court.id === clubId)?.name ?? '';
-    if (!clubName) return [];
+    const club = this.clubService.getClubById(clubId);
+    if (!club) return [];
 
-    return this.slotPolicyService.getSlotsForSite(clubName, this.selectedDate);
+    return this.slotPolicyService.getSlotsForSite(club.name, this.selectedDate);
   }
 
   handleSiteChange() {
+    this.errorMessage.set('');
     this.refreshSelectedTime();
   }
 
   handleDateChange() {
+    this.errorMessage.set('');
     this.refreshSelectedTime();
   }
 
@@ -90,8 +65,45 @@ export class Content {
   }
 
   navigateToCourtList() {
-    const clubId = Number(this.selectedCourtId);
-    if (!clubId || !this.selectedTime) return;
+    this.errorMessage.set('');
+
+    const user = this.currentUser();
+    const clubId = Number(this.selectedClubId);
+
+    if (!clubId) {
+      this.errorMessage.set('Sélectionne un club.');
+      return;
+    }
+
+    if (!this.selectedDate) {
+      this.errorMessage.set('Sélectionne une date.');
+      return;
+    }
+
+    const club = this.clubService.getClubById(clubId);
+    if (!club) {
+      this.errorMessage.set('Club introuvable.');
+      return;
+    }
+
+    if (user) {
+      const result = this.reservationService.canUserReserveClub({
+        matricule: user.matricule,
+        userSiteName: user.siteName,
+        clubName: club.name,
+        reservationDate: this.selectedDate,
+      });
+
+      if (!result.allowed) {
+        this.errorMessage.set(result.message);
+        return;
+      }
+    }
+
+    if (!this.selectedTime) {
+      this.errorMessage.set('Aucun créneau disponible pour ce club à cette date.');
+      return;
+    }
 
     this.router.navigate(['/terrain', clubId], {
       queryParams: {
@@ -106,15 +118,13 @@ export class Content {
   }
 
   previewClubs = computed(() => {
-    const allClubs = this.courtList;
-
-    return allClubs.slice(0, 2).map((club, index) => ({
+    return this.clubList.map(club => ({
       id: club.id,
       name: club.name,
-      city: this.getClubCity(club.id),
-      type: index % 2 === 0 ? 'Indoor' : 'Outdoor',
-      courts: this.getClubCourtsCount(club.id),
-      price: 60,
+      city: club.location,
+      type: club.type === 'indoor' ? 'Indoor' : 'Outdoor',
+      courts: club.courts.length,
+      price: club.price,
       slots: this.slotPolicyService.getSlotsForSite(club.name, this.selectedDate).slice(0, 3),
     }));
   });
@@ -130,7 +140,7 @@ export class Content {
 
     if (!currentUser) return matches.slice(0, 2);
 
-    const memberType = this.getMemberTypeFromMatricule(currentUser.matricule);
+    const memberType = this.userService.getMemberTypeFromMatricule(currentUser.matricule);
     const userSite = (currentUser.siteName || '').trim().toLowerCase();
 
     if (memberType === 'SITE' && userSite) {
@@ -151,83 +161,60 @@ export class Content {
   }
 
   getAmountPerPlayer(match: ReservationModel): number {
-    return getAmountPerPlayer(match.total);
+    return Number((match.total || 0).toFixed(2));
   }
 
   reservePreview(clubId: number) {
+    this.errorMessage.set('');
+
     const currentUser = this.currentUser();
+    const club = this.clubService.getClubById(clubId);
+
+    if (!club) return;
 
     if (currentUser) {
-      const memberType = this.getMemberTypeFromMatricule(currentUser.matricule);
+      const result = this.reservationService.canUserReserveClub({
+        matricule: currentUser.matricule,
+        userSiteName: currentUser.siteName,
+        clubName: club.name,
+        reservationDate: this.selectedDate,
+      });
 
-      if (memberType === 'SITE') {
-        const userSite = (currentUser.siteName || '').trim().toLowerCase();
-        const targetSite = (this.courtService.getterrains().find(court => court.id === clubId)?.name || '')
-          .trim()
-          .toLowerCase();
-
-        if (userSite && targetSite && userSite !== targetSite) {
-          return;
-        }
+      if (!result.allowed) {
+        this.errorMessage.set(result.message);
+        return;
       }
     }
 
-    const club = this.courtService.getterrains().find(court => court.id === clubId);
-    const defaultTimes = this.slotPolicyService.getSlotsForSite(club?.name ?? '', this.selectedDate);
+    const defaultTimes = this.slotPolicyService.getSlotsForSite(club.name, this.selectedDate);
+
+    if (!defaultTimes.length) {
+      this.errorMessage.set('Aucun créneau disponible pour ce club à cette date.');
+      return;
+    }
 
     this.router.navigate(['/terrain', clubId], {
       queryParams: {
         date: this.selectedDate,
-        time: defaultTimes[0] ?? '',
+        time: defaultTimes[0],
       },
     });
   }
 
   canReserveClub(clubId: number): boolean {
     const currentUser = this.currentUser();
+    const club = this.clubService.getClubById(clubId);
+
+    if (!club) return false;
     if (!currentUser) return true;
 
-    const memberType = this.getMemberTypeFromMatricule(currentUser.matricule);
-    if (memberType !== 'SITE') return true;
+    const result = this.reservationService.canUserReserveClub({
+      matricule: currentUser.matricule,
+      userSiteName: currentUser.siteName,
+      clubName: club.name,
+      reservationDate: this.selectedDate,
+    });
 
-    const userSite = (currentUser.siteName || '').trim().toLowerCase();
-    const targetSite = (this.courtService.getterrains().find(court => court.id === clubId)?.name || '')
-      .trim()
-      .toLowerCase();
-
-    return !userSite || !targetSite || userSite === targetSite;
-  }
-
-  private getMemberTypeFromMatricule(matricule: string): MemberType {
-    const value = (matricule || '').trim().toUpperCase();
-    if (value.startsWith('G')) return 'GLOBAL';
-    if (value.startsWith('S')) return 'SITE';
-    return 'FREE';
-  }
-
-  private getClubCity(clubId: number): string {
-    const cityMap: Record<number, string> = {
-      1: 'Waterloo',
-      2: 'Uccle',
-      3: 'Forest',
-    };
-    return cityMap[clubId] ?? 'Bruxelles';
-  }
-
-  private getClubCourtsCount(clubId: number): number {
-    const courtsCountMap: Record<number, number> = {
-      1: 13,
-      2: 5,
-      3: 5,
-    };
-    return courtsCountMap[clubId] ?? 4;
-  }
-
-  private getTodayIso(): string {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return result.allowed;
   }
 }

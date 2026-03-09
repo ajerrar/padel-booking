@@ -10,7 +10,6 @@ import { EmptyState } from '../../shared/components/empty-state/empty-state';
   standalone: true,
   imports: [CommonModule, PageHeader, EmptyState],
   templateUrl: './clubs.html',
-  styleUrls: ['./clubs.css'],
 })
 export class ClubsPage {
 

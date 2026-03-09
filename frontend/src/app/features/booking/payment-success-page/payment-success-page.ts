@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReservationService } from '../../../core/services/reservation-service';
 import { UserService } from '../../../core/services/user-service';
+import { formatDisplayDate } from '../../../core/utils/date.utils';
 
 type MatchVisibility = 'PUBLIC' | 'PRIVATE';
 
@@ -11,7 +12,6 @@ type MatchVisibility = 'PUBLIC' | 'PRIVATE';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './payment-success-page.html',
-  styleUrls: ['./payment-success-page.css'],
 })
 export class PaymentSuccessPage {
   private route = inject(ActivatedRoute);
@@ -25,6 +25,9 @@ export class PaymentSuccessPage {
   courtName = signal<string>('—');
   time = signal<string>('—');
   total = signal<number>(0);
+
+  baseTotal = signal<number>(0);
+  outstandingDebt = signal<number>(0);
 
   date = signal<string>('');
   siteName = signal<string>('');
@@ -49,7 +52,10 @@ export class PaymentSuccessPage {
       this.clubName.set(params.get('clubName') ?? '—');
       this.courtName.set(params.get('courtName') ?? '—');
       this.time.set(params.get('time') ?? '—');
+
       this.total.set(Number(params.get('total') ?? 0));
+      this.baseTotal.set(Number(params.get('baseTotal') ?? 0));
+      this.outstandingDebt.set(Number(params.get('outstandingDebt') ?? 0));
 
       this.date.set(params.get('date') ?? '');
       this.siteName.set(params.get('siteName') ?? '');
@@ -127,16 +133,33 @@ export class PaymentSuccessPage {
         time: this.time(),
         date: this.date(),
         siteName: this.siteName(),
-        total: Number(this.total()) || 0,
+        total: Number(this.baseTotal()) || 0,
         visibility: this.visibility(),
         invitedMatricules: this.visibility() === 'PRIVATE' ? this.invitedMatricules() : [],
         invitedEmails: this.visibility() === 'PRIVATE' ? this.invitedEmails() : [],
       });
 
+      if (this.outstandingDebt() > 0) {
+        const reservations = this.reservationService
+          .list()
+          .filter(match =>
+            (match.organizerMatricule || '').trim() === (user.matricule || '').trim()
+          )
+          .filter(match => (Number(match.organizerDebtAmount) || 0) > 0);
+
+        reservations.forEach(match => {
+          this.reservationService.clearOrganizerDebtForMatch(match.id);
+        });
+      }
+
       this.hasProcessedReservation.set(true);
     } catch (error: any) {
       this.errorMessage.set(error?.message ?? 'Erreur lors de la validation du paiement.');
     }
+  }
+
+  formatDisplayDate(date: string | undefined | null): string {
+    return formatDisplayDate(date);
   }
 
   navigateToHome() {

@@ -2,7 +2,7 @@
 
 @layer components {
   .page-shell {
-    @apply min-h-screen bg-gray-50 py-10;
+    @apply bg-gray-50 py-10;
   }
 
   .page-container {

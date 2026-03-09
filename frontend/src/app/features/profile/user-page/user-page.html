@@ -101,21 +101,29 @@
 
     </div>
 
-    <div class="mt-8 grid gap-4 md:grid-cols-3">
+    <div class="mt-8 grid gap-4 md:grid-cols-4">
 
       <div class="section-card-plain">
         <div class="field-label">Réservations</div>
-        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">{{ reservationsCount() }}</div>
       </div>
 
       <div class="section-card-plain">
         <div class="field-label">Heures jouées</div>
-        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">{{ hoursPlayed() }} h</div>
       </div>
 
       <div class="section-card-plain">
         <div class="field-label">Clubs visités</div>
-        <div class="mt-2 text-3xl font-extrabold text-gray-900">—</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">{{ visitedClubsCount() }}</div>
+      </div>
+
+      <div class="section-card-plain">
+        <div class="field-label">Solde en attente</div>
+        <div class="mt-2 text-3xl font-extrabold text-gray-900">€{{ outstandingDebt() }}</div>
+        <div *ngIf="outstandingDebt() > 0" class="mt-2 text-xs text-red-600">
+          Ce montant sera ajouté à ton prochain paiement.
+        </div>
       </div>
 
     </div>

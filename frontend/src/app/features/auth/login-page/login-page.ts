@@ -9,7 +9,6 @@ import { UserService } from '../../../core/services/user-service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login-page.html',
-  styleUrls: ['./login-page.css'],
 })
 export class LoginPage {
   private formBuilder = inject(FormBuilder);
@@ -19,7 +18,7 @@ export class LoginPage {
   errorMessage = signal('');
 
   loginForm = this.formBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    matricule: ['', [Validators.required, Validators.minLength(2)]],
   });
 
   submitLogin() {
@@ -30,11 +29,21 @@ export class LoginPage {
       return;
     }
 
-    const email = this.loginForm.getRawValue().email;
-    const user = this.userService.loginByEmail(email);
+    const matricule = this.loginForm.getRawValue().matricule;
+    const user = this.userService.loginByMatricule(matricule);
 
     if (!user) {
-      this.errorMessage.set('Aucun compte trouvé avec cet email.');
+      this.errorMessage.set('Matricule introuvable.');
+      return;
+    }
+
+    if (user.role === 'AdminGlobal') {
+      this.router.navigate(['/admin-global']);
+      return;
+    }
+
+    if (user.role === 'AdminClub') {
+      this.router.navigate(['/admin-site']);
       return;
     }
 

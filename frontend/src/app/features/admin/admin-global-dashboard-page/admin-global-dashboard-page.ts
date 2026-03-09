@@ -6,30 +6,30 @@ import { ReservationService } from '../../../core/services/reservation-service';
 import { SlotPolicyService } from '../../../core/services/slot-policy.service';
 import { StatCard } from '../../../shared/components/stat-card/stat-card';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { getTodayIso } from '../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-admin-global-dashboard-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink , StatCard, PageHeader],
+  imports: [CommonModule, FormsModule, StatCard, PageHeader, RouterLink],
   templateUrl: './admin-global-dashboard-page.html',
-  styleUrls: ['./admin-global-dashboard-page.css'],
 })
 export class AdminGlobalDashboardPage {
   private reservationService = inject(ReservationService);
   private slotPolicyService = inject(SlotPolicyService);
 
-  selectedSiteName = signal('Court 24 Arena');
-  selectedClosedDate = signal('');
-  selectedScheduleDate = signal(this.getTodayIso());
   infoMessage = signal('');
   errorMessage = signal('');
 
-  dashboardStats = computed(() => this.reservationService.getGlobalStatsDetailed());
-  siteOptions = computed(() => this.slotPolicyService.getAllSites());
+  selectedSiteName = signal('');
+  selectedClosedDate = signal('');
+  selectedScheduleDate = signal(getTodayIso());
 
-  closedDates = computed(() =>
-    this.slotPolicyService.getCustomClosedDates(this.selectedSiteName())
+  dashboardStats = computed(() =>
+    this.reservationService.getGlobalStatsDetailed()
   );
+
+  siteOptions = computed(() => this.slotPolicyService.getAllSites());
 
   weekdayOptions = [
     { value: 0, label: 'Dim' },
@@ -41,24 +41,39 @@ export class AdminGlobalDashboardPage {
     { value: 6, label: 'Sam' },
   ];
 
-  closedWeekdays = computed(() =>
-    this.slotPolicyService.getClosedWeekdays(this.selectedSiteName())
-  );
+  closedWeekdays = computed(() => {
+    const site = this.selectedSiteName().trim();
+    if (!site) return [];
+    return this.slotPolicyService.getClosedWeekdays(site);
+  });
 
-  reservedSlots = computed(() =>
-    this.reservationService.listReservedSlotsBySiteAndDate(
-      this.selectedSiteName(),
-      this.selectedScheduleDate()
-    )
-  );
+  closedDates = computed(() => {
+    const site = this.selectedSiteName().trim();
+    if (!site) return [];
+    return this.slotPolicyService.getCustomClosedDates(site);
+  });
 
-  maxRevenue = computed(() => {
+  reservedSlots = computed(() => {
+    const site = this.selectedSiteName().trim();
+    const date = this.selectedScheduleDate().trim();
+
+    if (!site || !date) return [];
+
+    return this.reservationService.listReservedSlotsBySiteAndDate(site, date);
+  });
+
+  constructor() {
+    const firstSite = this.slotPolicyService.getAllSites()[0] ?? '';
+    this.selectedSiteName.set(firstSite);
+  }
+
+  maxSiteRevenue = computed(() => {
     const values = this.dashboardStats().bySite.map(site => site.revenue);
     return values.length ? Math.max(...values) : 1;
   });
 
   getRevenueWidth(value: number): number {
-    const max = this.maxRevenue() || 1;
+    const max = this.maxSiteRevenue() || 1;
     return Math.max(10, Math.round((value / max) * 100));
   }
 
@@ -67,58 +82,71 @@ export class AdminGlobalDashboardPage {
   }
 
   toggleClosedWeekday(day: number) {
-    this.errorMessage.set('');
-    this.infoMessage.set('');
+    const site = this.selectedSiteName().trim();
+    if (!site) {
+      this.errorMessage.set('Choisis un site.');
+      this.infoMessage.set('');
+      return;
+    }
 
     const current = [...this.closedWeekdays()];
     const next = current.includes(day)
       ? current.filter(x => x !== day)
       : [...current, day];
 
-    this.slotPolicyService.updateClosedWeekdays(this.selectedSiteName(), next);
-    this.infoMessage.set('Jours de fermeture hebdomadaire mis à jour.');
+    this.slotPolicyService.updateClosedWeekdays(site, next);
+    this.infoMessage.set('Jours de fermeture mis à jour.');
+    this.errorMessage.set('');
   }
 
   addClosedDate() {
-    this.errorMessage.set('');
-    this.infoMessage.set('');
-
+    const site = this.selectedSiteName().trim();
     const date = this.selectedClosedDate().trim();
-    if (!date) {
-      this.errorMessage.set('Choisis une date de fermeture.');
+
+    if (!site) {
+      this.errorMessage.set('Choisis un site.');
+      this.infoMessage.set('');
       return;
     }
 
-    this.slotPolicyService.addCustomClosedDate(this.selectedSiteName(), date);
+    if (!date) {
+      this.errorMessage.set('Choisis une date.');
+      this.infoMessage.set('');
+      return;
+    }
+
+    this.slotPolicyService.addCustomClosedDate(site, date);
     this.selectedClosedDate.set('');
-    this.infoMessage.set('Fermeture exceptionnelle ajoutée.');
+    this.infoMessage.set('Date de fermeture ajoutée.');
+    this.errorMessage.set('');
   }
 
   removeClosedDate(date: string) {
-    this.slotPolicyService.removeCustomClosedDate(this.selectedSiteName(), date);
+    const site = this.selectedSiteName().trim();
+    if (!site) {
+      this.errorMessage.set('Choisis un site.');
+      this.infoMessage.set('');
+      return;
+    }
+
+    this.slotPolicyService.removeCustomClosedDate(site, date);
     this.infoMessage.set('Date de fermeture supprimée.');
     this.errorMessage.set('');
+  }
+
+  handleSiteChange(value: string) {
+    this.selectedSiteName.set(value || '');
+    this.infoMessage.set('');
+    this.errorMessage.set('');
+  }
+
+  handleScheduleDateChange(value: string) {
+    this.selectedScheduleDate.set(value || getTodayIso());
   }
 
   cancelReservationByAdmin(id: string) {
     this.reservationService.adminCancelReservation(id);
     this.infoMessage.set('Réservation annulée.');
     this.errorMessage.set('');
-  }
-
-  handleSiteChange(value: string) {
-    this.selectedSiteName.set(value || 'Court 24 Arena');
-  }
-
-  handleScheduleDateChange(value: string) {
-    this.selectedScheduleDate.set(value || this.getTodayIso());
-  }
-
-  private getTodayIso(): string {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 }

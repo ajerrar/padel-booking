@@ -5,26 +5,30 @@ import { map } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { CourtService } from '../../../core/services/court.service';
-import { CourtCardService } from '../../../core/services/court-card-service';
+import { ClubService } from '../../../core/services/club.service';
 import { ReservationService } from '../../../core/services/reservation-service';
 import { SlotPolicyService } from '../../../core/services/slot-policy.service';
+import { UserService } from '../../../core/services/user-service';
 
 import { SlotList, SlotItem } from '../components/slot-list/slot-list';
+import { getTodayIso } from '../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-court-detail-page',
   standalone: true,
   imports: [CommonModule, SlotList],
   templateUrl: './court-detail-page.html',
-  styleUrls: ['./court-detail-page.css'],
 })
 export class CourtDetailPage {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private courtService = inject(CourtService);
-  private courtCardService = inject(CourtCardService);
+  private clubService = inject(ClubService);
   private reservationService = inject(ReservationService);
   private slotPolicyService = inject(SlotPolicyService);
+  private userService = inject(UserService);
+
+  errorMessage = signal('');
 
   clubId = toSignal(
     this.route.paramMap.pipe(map(pm => Number(pm.get('clubId') ?? pm.get('id') ?? 0))),
@@ -37,31 +41,22 @@ export class CourtDetailPage {
   );
 
   selectedDate = signal<string>(
-    this.route.snapshot.queryParamMap.get('date') ?? this.todayISO()
+    this.route.snapshot.queryParamMap.get('date') ?? getTodayIso()
   );
 
   selectedSlot = signal<SlotItem | null>(null);
   showConfirmModal = signal(false);
+  matchVisibility = signal<'PUBLIC' | 'PRIVATE'>('PRIVATE');
 
-  clubName = computed(() => {
-    const id = this.clubId();
-    return this.courtService.getterrains().find(c => c.id === id)?.name ?? '—';
-  });
-
-  clubLocation = computed(() => {
-    const map: Record<number, string> = {
-      1: 'Waterloo',
-      2: 'Uccle',
-      3: 'Forest',
-    };
-    return map[this.clubId()] ?? '—';
-  });
+  club = computed(() => this.clubService.getClubById(this.clubId()));
+  clubName = computed(() => this.club()?.name ?? '—');
+  clubLocation = computed(() => this.club()?.location ?? '—');
 
   court = computed(() => {
     const clubId = this.clubId();
     const courtId = this.courtId();
     if (!clubId || !courtId) return undefined;
-    return this.courtCardService.GetCourtById(clubId, courtId);
+    return this.courtService.getCourtById(clubId, courtId);
   });
 
   courtName = computed(() => this.court()?.name ?? '—');
@@ -69,9 +64,8 @@ export class CourtDetailPage {
 
   matchTotal = computed<number>(() => 60);
   pricePerPlayer = computed<number>(() => Number((this.matchTotal() / 4).toFixed(2)));
-  totalPrice = computed(() => (this.selectedSlot() ? this.matchTotal() : 0));
+  totalPrice = computed(() => this.pricePerPlayer());
 
-  // ✅ fermeture du site
   isClosed = computed(() => {
     const site = this.clubName();
     const date = this.selectedDate();
@@ -86,7 +80,6 @@ export class CourtDetailPage {
     return this.slotPolicyService.getClosureReason(site, date);
   });
 
-  // ✅ vrais créneaux selon le site
   availableTimes = computed<string[]>(() => {
     const site = this.clubName();
     const date = this.selectedDate();
@@ -94,31 +87,28 @@ export class CourtDetailPage {
     return this.slotPolicyService.getSlotsForSite(site, date);
   });
 
-  // ✅ slots = créneaux du site, puis on enlève ceux déjà réservés
   slots = computed<SlotItem[]>(() => {
-    const c = this.court();
+    const currentCourt = this.court();
     const site = this.clubName();
     const dateKey = (this.selectedDate() || '').trim();
 
-    if (!c || !site || site === '—') return [];
+    if (!currentCourt || !site || site === '—') return [];
+    if (this.isClosed()) return [];
 
-    const base = this.availableTimes();
-
-    if (this.isClosed()) {
-      return [];
-    }
-
-    return base.map(time => ({
+    return this.availableTimes().map(time => ({
       time,
       isAvailable: this.reservationService.isSlotAvailable(
         site,
-        c.name,
+        currentCourt.name,
         dateKey,
         time
       ),
     }));
   });
 
+  setMatchVisibility(value: 'PUBLIC' | 'PRIVATE') {
+    this.matchVisibility.set(value);
+  }
 
   backToCourts() {
     this.router.navigate(['/terrain', this.clubId()], {
@@ -129,23 +119,37 @@ export class CourtDetailPage {
   }
 
   onDateChange(valueOrEvent: string | Event) {
-    const v =
+    this.errorMessage.set('');
+
+    const value =
       typeof valueOrEvent === 'string'
         ? valueOrEvent
         : (valueOrEvent.target as HTMLInputElement).value;
 
-    const date = v || this.todayISO();
+    const date = value || getTodayIso();
     this.selectedDate.set(date);
     this.selectedSlot.set(null);
   }
 
-  select(s: SlotItem) {
-    if (!s.isAvailable) return;
-    this.selectedSlot.set(s);
+  select(slot: SlotItem) {
+    this.errorMessage.set('');
+    if (!slot.isAvailable) return;
+    this.selectedSlot.set(slot);
   }
 
   confirm() {
-    if (!this.selectedSlot()) return;
+    this.errorMessage.set('');
+
+    if (this.isClosed()) {
+      this.errorMessage.set('Le site est fermé pour cette date.');
+      return;
+    }
+
+    if (!this.selectedSlot()) {
+      this.errorMessage.set('Sélectionne un créneau avant de continuer.');
+      return;
+    }
+
     this.showConfirmModal.set(true);
   }
 
@@ -153,14 +157,36 @@ export class CourtDetailPage {
     this.showConfirmModal.set(false);
   }
 
-  // ✅ fin du créneau calculée avec SlotPolicyService
   nextHourLabel(time: string): string {
     return this.slotPolicyService.getEndTime(this.clubName(), time);
   }
 
   validateReservation() {
+    this.errorMessage.set('');
+
     const slot = this.selectedSlot();
-    if (!slot) return;
+    if (!slot) {
+      this.errorMessage.set('Sélectionne un créneau avant de valider.');
+      return;
+    }
+
+    const currentClub = this.club();
+    const currentUser = this.userService.currentUser();
+
+    if (currentUser && currentClub) {
+      const result = this.reservationService.canUserReserveClub({
+        matricule: currentUser.matricule,
+        userSiteName: currentUser.siteName,
+        clubName: currentClub.name,
+        reservationDate: this.selectedDate(),
+      });
+
+      if (!result.allowed) {
+        this.showConfirmModal.set(false);
+        this.errorMessage.set(result.message);
+        return;
+      }
+    }
 
     this.showConfirmModal.set(false);
 
@@ -174,19 +200,12 @@ export class CourtDetailPage {
         date: this.selectedDate(),
         total: this.totalPrice(),
         siteName: this.clubName(),
+        visibility: this.matchVisibility(),
       },
     });
   }
 
   goHome() {
     this.router.navigate(['/home']);
-  }
-
-  private todayISO(): string {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
   }
 }

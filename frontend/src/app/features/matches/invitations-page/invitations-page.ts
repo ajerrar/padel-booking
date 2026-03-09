@@ -13,7 +13,6 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
   standalone: true,
   imports: [CommonModule, EmptyState, PageHeader],
   templateUrl: './invitations-page.html',
-  styleUrls: ['./invitations-page.css'],
 })
 export class InvitationsPage {
   private reservationService = inject(ReservationService);
@@ -36,7 +35,11 @@ export class InvitationsPage {
   }
 
   getAmountPerPlayer(reservation: ReservationModel): number {
-    return getAmountPerPlayer(reservation.total);
+    return Number((reservation.total || 0).toFixed(2));
+  }
+
+  getMatchTotal(reservation: ReservationModel): number {
+    return Number((((reservation.total || 0) * 4)).toFixed(2));
   }
 
   getInvitationStatus(reservation: ReservationModel): 'PENDING' | 'ACCEPTED' {

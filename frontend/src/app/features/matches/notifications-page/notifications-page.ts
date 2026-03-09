@@ -11,7 +11,6 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
   standalone: true,
   imports: [CommonModule, EmptyState, PageHeader],
   templateUrl: './notifications-page.html',
-  styleUrls: ['./notifications-page.css'],
 })
 export class NotificationsPage {
   private notificationService = inject(NotificationService);

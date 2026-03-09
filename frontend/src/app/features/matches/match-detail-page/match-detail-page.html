@@ -8,8 +8,12 @@
         </div>
         <h1 class="page-title">Détail du match</h1>
         <p class="page-subtitle">
-          {{ match.clubName }} • {{ match.courtName }} • {{ match.date }} • {{ match.time }}
+          {{ match.clubName }} • {{ match.courtName }} • {{ formatDisplayDate(match.date) }} • {{ match.time }}
         </p>
+      </div>
+
+      <div *ngIf="outstandingDebt() > 0" class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        Ancien solde à ajouter : €{{ outstandingDebt() }}
       </div>
 
       <button
@@ -45,11 +49,11 @@
           </span>
 
           <span class="badge-neutral">
-            €{{ match.total }} total
+            €{{ getMatchTotal() }} total
           </span>
 
           <span class="badge-neutral">
-            €{{ getAmountPerPlayer() }} / joueur
+           €{{ getDisplayedAmountToPay() }} / joueur
           </span>
         </div>
 
@@ -125,7 +129,7 @@
 
           <div class="sub-card">
             <div class="field-label">Date</div>
-            <div class="field-value">{{ match.date }}</div>
+            <div class="field-value">{{ formatDisplayDate(match.date) }}</div>
           </div>
 
           <div class="sub-card">
@@ -137,14 +141,14 @@
             *ngIf="canJoinPublicMatch()"
             (click)="joinPublicMatch()"
             class="primary-button-lg w-full">
-            Rejoindre le match — €{{ getAmountPerPlayer() }}
+            Rejoindre le match — €{{ getDisplayedAmountToPay() }}
           </button>
 
           <button
             *ngIf="canPayPrivateSeat()"
             (click)="payPrivateInvitationSeat()"
             class="w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-700">
-            Payer ma place — €{{ getAmountPerPlayer() }}
+            Payer ma place — €{{ getDisplayedAmountToPay() }}
           </button>
 
           <div *ngIf="canInvitePlayers()" class="rounded-2xl border p-4">
@@ -175,9 +179,18 @@
             </button>
           </div>
 
-          <div *ngIf="isCurrentUserParticipant()"
-               class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-            Tu participes déjà à ce match.
+          <div *ngIf="participationInfoMessage()"
+               class="rounded-2xl border p-4 text-sm"
+               [class.border-red-200]="participationInfoMessage() !== 'Tu participes déjà à ce match.' && participationInfoMessage() !== 'Tu es invité à ce match, mais ta place est encore en attente de paiement.'"
+               [class.bg-red-50]="participationInfoMessage() !== 'Tu participes déjà à ce match.' && participationInfoMessage() !== 'Tu es invité à ce match, mais ta place est encore en attente de paiement.'"
+               [class.text-red-700]="participationInfoMessage() !== 'Tu participes déjà à ce match.' && participationInfoMessage() !== 'Tu es invité à ce match, mais ta place est encore en attente de paiement.'"
+               [class.border-amber-200]="participationInfoMessage() === 'Tu es invité à ce match, mais ta place est encore en attente de paiement.'"
+               [class.bg-amber-50]="participationInfoMessage() === 'Tu es invité à ce match, mais ta place est encore en attente de paiement.'"
+               [class.text-amber-700]="participationInfoMessage() === 'Tu es invité à ce match, mais ta place est encore en attente de paiement.'"
+               [class.border-emerald-200]="participationInfoMessage() === 'Tu participes déjà à ce match.'"
+               [class.bg-emerald-50]="participationInfoMessage() === 'Tu participes déjà à ce match.'"
+               [class.text-emerald-700]="participationInfoMessage() === 'Tu participes déjà à ce match.'">
+            {{ participationInfoMessage() }}
           </div>
 
           <div *ngIf="isComplete()"

@@ -35,8 +35,8 @@ export class SlotPolicyService {
       closedWeekdays: [3, 4],
       closedDates: ['2026-03-17', '2026-06-09'],
     },
-    'PlayZone Padel': {
-      siteName: 'PlayZone Padel',
+    'PlayZone Padely': {
+      siteName: 'PlayZone Padely',
       opening: '10:00',
       closing: '21:30',
       slotMinutes: 90,

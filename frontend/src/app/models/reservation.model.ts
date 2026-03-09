@@ -29,4 +29,7 @@ export interface ReservationModel {
 
   invitedEmails?: string[];
   acceptedEmails?: string[];
+
+  organizerDebtApplied?: boolean;
+  organizerDebtAmount?: number;
 }

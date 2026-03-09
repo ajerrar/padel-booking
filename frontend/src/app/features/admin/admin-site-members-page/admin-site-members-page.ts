@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user-service';
+import { getRoleLabel } from '../../../core/utils/user.utils';
 
 type RoleFilter = 'ALL' | 'USER' | 'ADMIN_SITE';
 
@@ -10,7 +11,6 @@ type RoleFilter = 'ALL' | 'USER' | 'ADMIN_SITE';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-site-members-page.html',
-  styleUrls: ['./admin-site-members-page.css'],
 })
 export class AdminSiteMembersPage {
   private userService = inject(UserService);
@@ -20,21 +20,61 @@ export class AdminSiteMembersPage {
   searchQuery = signal('');
   selectedRoleFilter = signal<RoleFilter>('ALL');
 
-  siteName = computed(() => this.currentUser()?.siteName || '');
+  private normalizeSiteName(value: string): string {
+    const raw = String(value || '').trim().toLowerCase();
 
-  allSiteUsers = computed(() => {
-    const site = this.siteName();
+    if (
+      raw === 'court 24 arena' ||
+      raw === 'site_court24_arena_waterloo' ||
+      raw === 'court24' ||
+      raw === 'waterloo'
+    ) {
+      return 'Court 24 Arena';
+    }
 
-    return this.userService
-      .listUsers()
-      .filter(user => user.siteName === site);
+    if (
+      raw === 'padel factory' ||
+      raw === 'site_padel_factory_uccle' ||
+      raw === 'factory' ||
+      raw === 'uccle'
+    ) {
+      return 'Padel Factory';
+    }
+
+    if (
+      raw === 'playzone padely' ||
+      raw === 'playzone padel' ||
+      raw === 'site_playzone_padely_forest' ||
+      raw === 'playzone' ||
+      raw === 'forest'
+    ) {
+      return 'PlayZone Padely';
+    }
+
+    return String(value || '').trim();
+  }
+
+  siteName = computed(() => {
+    return this.normalizeSiteName(this.currentUser()?.siteName || '');
+  });
+
+  allUsers = computed(() => this.userService.listUsers());
+
+  siteUsers = computed(() => {
+    const adminSite = this.siteName().trim().toLowerCase();
+    if (!adminSite) return [];
+
+    return this.allUsers().filter(user => {
+      const userSite = this.normalizeSiteName(user.siteName || '').trim().toLowerCase();
+      return userSite === adminSite;
+    });
   });
 
   filteredUsers = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
     const role = this.selectedRoleFilter();
 
-    let users = [...this.allSiteUsers()];
+    let users = [...this.siteUsers()];
 
     if (role !== 'ALL') {
       users = users.filter(user => {
@@ -49,25 +89,27 @@ export class AdminSiteMembersPage {
 
     if (query) {
       users = users.filter(user =>
-        `${user.firstName || ''} ${user.lastName || ''} ${user.email || ''} ${user.matricule || ''}`
+        `${user.firstName || ''} ${user.lastName || ''} ${user.email || ''} ${user.matricule || ''} ${user.city || ''} ${user.siteName || ''} ${user.role || ''} ${user.level || ''}`
           .toLowerCase()
           .includes(query)
       );
     }
 
     return users.sort((a, b) =>
-      `${a.lastName || ''} ${a.firstName || ''}`.localeCompare(`${b.lastName || ''} ${b.firstName || ''}`)
+      `${a.lastName || ''} ${a.firstName || ''}`.localeCompare(
+        `${b.lastName || ''} ${b.firstName || ''}`
+      )
     );
   });
 
-  totalMembers = computed(() => this.allSiteUsers().length);
+  totalMembers = computed(() => this.siteUsers().length);
 
   totalUsers = computed(() =>
-    this.allSiteUsers().filter(user => String(user.role || '').trim() === 'User').length
+    this.siteUsers().filter(user => String(user.role || '').trim() === 'User').length
   );
 
   totalSiteAdmins = computed(() =>
-    this.allSiteUsers().filter(user => String(user.role || '').trim() === 'AdminClub').length
+    this.siteUsers().filter(user => String(user.role || '').trim() === 'AdminClub').length
   );
 
   handleSearchInput(value: string) {
@@ -79,18 +121,13 @@ export class AdminSiteMembersPage {
   }
 
   getRoleLabel(role: string): string {
-    const r = String(role || '').trim();
-
-    if (r === 'AdminClub') return 'Admin site';
-
-    return 'Utilisateur';
+    return getRoleLabel(role);
   }
 
   getRoleBadgeClass(role: string): string {
     const r = String(role || '').trim();
 
     if (r === 'AdminClub') return 'bg-sky-50 text-sky-700';
-
     return 'bg-emerald-50 text-emerald-700';
   }
 }

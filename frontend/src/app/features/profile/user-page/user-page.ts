@@ -3,18 +3,21 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { UserService } from '../../../core/services/user-service';
 import { NotificationService } from '../../../core/services/notification-service';
+import { ReservationService } from '../../../core/services/reservation-service';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { ReservationModel } from '../../../models/reservation.model';
+import { getRoleLabel } from '../../../core/utils/user.utils';
 
 @Component({
   selector: 'app-user-page',
   standalone: true,
-  imports: [CommonModule, RouterLink , PageHeader],
+  imports: [CommonModule, RouterLink, PageHeader],
   templateUrl: './user-page.html',
-  styleUrls: ['./user-page.css'],
 })
 export class ProfilePage {
   private userService = inject(UserService);
   private notificationService = inject(NotificationService);
+  private reservationService = inject(ReservationService);
   private router = inject(Router);
 
   currentUser = this.userService.currentUser;
@@ -24,6 +27,36 @@ export class ProfilePage {
     if (!user) return 0;
 
     return this.notificationService.unreadCountForUser(user.email, user.matricule);
+  });
+
+  userReservations = computed<ReservationModel[]>(() => {
+    const user = this.currentUser();
+    if (!user) return [];
+
+    return this.reservationService
+      .listByUser(user.matricule)
+      .filter(reservation => reservation.status === 'CONFIRMED');
+  });
+
+  reservationsCount = computed(() => this.userReservations().length);
+
+  hoursPlayed = computed(() => {
+    return Number((this.userReservations().length * 1.5).toFixed(1));
+  });
+
+  visitedClubsCount = computed(() => {
+    const clubs = this.userReservations()
+      .map(reservation => String(reservation.clubName || '').trim())
+      .filter(Boolean);
+
+    return new Set(clubs).size;
+  });
+
+  outstandingDebt = computed(() => {
+    const user = this.currentUser();
+    if (!user) return 0;
+
+    return this.reservationService.getOrganizerOutstandingDebt(user.matricule);
   });
 
   getInitials(): string {
@@ -37,12 +70,7 @@ export class ProfilePage {
   }
 
   getRoleLabel(): string {
-    const role = String(this.currentUser()?.role || '').trim();
-
-    if (role === 'AdminGlobal') return 'Administrateur global';
-    if (role === 'AdminClub') return 'Administrateur du site';
-
-    return 'Membre';
+    return getRoleLabel(this.currentUser()?.role);
   }
 
   navigateToReservations() {

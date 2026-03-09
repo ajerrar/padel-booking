@@ -24,8 +24,23 @@ export interface UserModel {
 export class UserService {
   currentUser = signal<UserModel | null>(this.readCurrentUser());
 
-  register(payload: Omit<UserModel, 'id' | 'matricule'> & { memberType: MemberType }): UserModel {
+  register(
+    payload: Omit<UserModel, 'id' | 'matricule' | 'role'> & { memberType: MemberType }
+  ): UserModel {
     const memberType = payload.memberType;
+    const normalizedEmail = String(payload.email || '').trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      throw new Error('L’email est obligatoire.');
+    }
+
+    const emailAlreadyExists = this.listUsers().some(
+      user => String(user.email || '').trim().toLowerCase() === normalizedEmail
+    );
+
+    if (emailAlreadyExists) {
+      throw new Error('Un compte existe déjà avec cet email.');
+    }
 
     if (memberType === 'SITE' && !payload.siteName?.trim()) {
       throw new Error('Le site est obligatoire pour un membre SITE.');
@@ -36,7 +51,15 @@ export class UserService {
     const user: UserModel = {
       id: this.generateId(),
       matricule: this.generateMatricule(memberType),
+      role: 'User',
       ...userData,
+      email: normalizedEmail,
+      firstName: String(payload.firstName || '').trim(),
+      lastName: String(payload.lastName || '').trim(),
+      phone: String(payload.phone || '').trim(),
+      city: String(payload.city || '').trim(),
+      level: String(payload.level || '').trim(),
+      siteName: payload.siteName?.trim() || undefined,
     };
 
     this.saveUser(user);
@@ -51,6 +74,19 @@ export class UserService {
 
     const user = this.listUsers().find(
       item => String(item.email || '').trim().toLowerCase() === normalizedEmail
+    );
+
+    if (!user) return null;
+
+    this.persistCurrentUser(user);
+    return user;
+  }
+  loginByMatricule(matricule: string): UserModel | null {
+    const normalizedMatricule = String(matricule || '').trim().toUpperCase();
+    if (!normalizedMatricule) return null;
+
+    const user = this.listUsers().find(
+      item => String(item.matricule || '').trim().toUpperCase() === normalizedMatricule
     );
 
     if (!user) return null;
@@ -84,27 +120,29 @@ export class UserService {
 
     const siteAdmins = [
       {
-        id: 'seed-admin-site-court24-waterloo',
-        email: 'site-court-24@padel.com',
-        siteName: 'SITE_COURT24_ARENA_WATERLOO',
+        id: 'seed-admin-site-court24',
+        email: 'site-court24@padel.com',
+        siteName: 'Court 24 Arena',
         city: 'Waterloo',
       },
       {
-        id: 'seed-admin-site-court24-uccle',
+        id: 'seed-admin-site-factory',
         email: 'site-padel-factory@padel.com',
-        siteName: 'SITE_PADEL_FACTORY_UCCLE',
+        siteName: 'Padel Factory',
         city: 'Uccle',
       },
       {
-        id: 'seed-admin-site-padel-inn-forest',
+        id: 'seed-admin-site-playzone',
         email: 'site-playzone@padel.com',
-        siteName: 'SITE_PLAYZONE_PADELY_FOREST',
+        siteName: 'PlayZone Padely',
         city: 'Forest',
       },
     ];
 
     for (const siteAdmin of siteAdmins) {
-      const exists = users.some(user => user.email === siteAdmin.email);
+      const exists = users.some(
+        user => String(user.email || '').trim().toLowerCase() === siteAdmin.email.toLowerCase()
+      );
 
       if (!exists) {
         this.saveUser({
@@ -115,7 +153,7 @@ export class UserService {
           phone: '',
           city: siteAdmin.city,
           level: 'Avancé',
-          matricule: 'ADM-SITE',
+          matricule: `ADM-SITE-${siteAdmin.city.toUpperCase()}`,
           role: 'AdminClub',
           siteName: siteAdmin.siteName,
         });
@@ -127,7 +165,15 @@ export class UserService {
     const user = this.currentUser();
     if (!user) return;
 
-    const updatedUser: UserModel = { ...user, ...patch };
+    const updatedUser: UserModel = {
+      ...user,
+      ...patch,
+      email: patch.email ? String(patch.email).trim().toLowerCase() : user.email,
+      siteName:
+        patch.siteName !== undefined
+          ? String(patch.siteName || '').trim() || undefined
+          : user.siteName,
+    };
 
     this.saveUser(updatedUser);
     this.persistCurrentUser(updatedUser);
@@ -136,15 +182,105 @@ export class UserService {
   listUsers(): UserModel[] {
     try {
       const raw = localStorage.getItem(USERS_STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as UserModel[]) : [];
+      const parsed = raw ? (JSON.parse(raw) as UserModel[]) : [];
+
+      return Array.isArray(parsed)
+        ? parsed.map(user => ({
+          ...user,
+          email: String(user.email || '').trim().toLowerCase(),
+          firstName: String(user.firstName || '').trim(),
+          lastName: String(user.lastName || '').trim(),
+          city: String(user.city || '').trim(),
+          level: String(user.level || '').trim(),
+          matricule: String(user.matricule || '').trim(),
+          siteName: user.siteName ? String(user.siteName).trim() : undefined,
+          phone: user.phone ? String(user.phone).trim() : '',
+        }))
+        : [];
     } catch {
       return [];
     }
   }
 
+  getUserByMatricule(matricule: string): UserModel | undefined {
+    const normalizedMatricule = String(matricule || '').trim();
+    if (!normalizedMatricule) return undefined;
+
+    return this.listUsers().find(
+      user => String(user.matricule || '').trim() === normalizedMatricule
+    );
+  }
+
+  getMemberTypeFromMatricule(matricule: string): MemberType {
+    const value = String(matricule || '').trim().toUpperCase();
+
+    if (value.startsWith('G')) return 'GLOBAL';
+    if (value.startsWith('S')) return 'SITE';
+    return 'FREE';
+  }
+
+  blockBookingForDays(matricule: string, days: number): void {
+    const normalizedMatricule = String(matricule || '').trim();
+    if (!normalizedMatricule || days <= 0) return;
+
+    const users = this.listUsers();
+    const index = users.findIndex(user => user.matricule === normalizedMatricule);
+    if (index < 0) return;
+
+    const until = new Date();
+    until.setDate(until.getDate() + days);
+
+    users[index] = {
+      ...users[index],
+      bookingBlockedUntil: until.toISOString(),
+    };
+
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+
+    if (this.currentUser()?.matricule === normalizedMatricule) {
+      this.currentUser.set(users[index]);
+      localStorage.setItem(CURRENT_USER_STORAGE_KEY, JSON.stringify(users[index]));
+    }
+  }
+
+  clearBookingBlock(matricule: string): void {
+    const normalizedMatricule = String(matricule || '').trim();
+    if (!normalizedMatricule) return;
+
+    const users = this.listUsers();
+    const index = users.findIndex(user => user.matricule === normalizedMatricule);
+    if (index < 0) return;
+
+    users[index] = {
+      ...users[index],
+      bookingBlockedUntil: undefined,
+    };
+
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+
+    if (this.currentUser()?.matricule === normalizedMatricule) {
+      this.currentUser.set(users[index]);
+      localStorage.setItem(CURRENT_USER_STORAGE_KEY, JSON.stringify(users[index]));
+    }
+  }
+
+  isBookingBlocked(matricule: string): boolean {
+    const user = this.getUserByMatricule(matricule);
+    if (!user?.bookingBlockedUntil) return false;
+
+    return new Date(user.bookingBlockedUntil).getTime() > Date.now();
+  }
+
+  getBookingBlockedUntil(matricule: string): string | null {
+    const user = this.getUserByMatricule(matricule);
+    return user?.bookingBlockedUntil ?? null;
+  }
+
   private saveUser(user: UserModel): void {
     const users = this.listUsers();
-    const index = users.findIndex(item => item.email === user.email);
+    const index = users.findIndex(
+      item => String(item.email || '').trim().toLowerCase() === String(user.email || '').trim().toLowerCase()
+    );
 
     if (index >= 0) {
       users[index] = user;
@@ -171,9 +307,11 @@ export class UserService {
 
   private generateMatricule(memberType: MemberType): string {
     const prefix =
-      memberType === 'GLOBAL' ? 'G' :
-        memberType === 'SITE' ? 'S' :
-          'L';
+      memberType === 'GLOBAL'
+        ? 'G'
+        : memberType === 'SITE'
+          ? 'S'
+          : 'L';
 
     const digitsCount = memberType === 'GLOBAL' ? 4 : 5;
 

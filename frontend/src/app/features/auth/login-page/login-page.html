@@ -1,46 +1,56 @@
 <div class="page-shell">
   <div class="page-container-narrow">
 
-    <div class="mx-auto max-w-xl">
-      <div class="section-card-plain">
+    <div class="section-card-plain">
+      <div class="text-center">
+        <h1 class="page-title">Connexion</h1>
+        <p class="page-subtitle mt-2">
+          Connecte-toi avec ton matricule.
+        </p>
+      </div>
+      <div class="mt-4 rounded-2xl bg-gray-50 p-4 text-xs text-gray-600">
+        <div class="font-semibold text-gray-900">Comptes de démonstration</div>
+        <div class="mt-2">Admin global : ADM-GLOBAL</div>
+        <div>Admin site Waterloo : ADM-SITE-WATERLOO</div>
+        <div>Admin site Uccle : ADM-SITE-UCCLE</div>
+        <div>Admin site Forest : ADM-SITE-FOREST</div>
+      </div>
 
-        <div class="text-center">
-          <h1 class="page-title">Connexion</h1>
-          <p class="page-subtitle">
-            Connecte-toi pour accéder à tes réservations et à ton profil.
-          </p>
-        </div>
+      <div *ngIf="errorMessage()" class="status-error mt-6">
+        {{ errorMessage() }}
+      </div>
 
-        <div *ngIf="errorMessage()" class="status-error mt-6">
-          {{ errorMessage() }}
-        </div>
+      <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="mt-6 space-y-4">
 
-        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="mt-6 space-y-4">
+        <div>
+          <label class="mb-2 block text-sm font-semibold text-gray-700">
+            Matricule
+          </label>
+          <input
+            formControlName="matricule"
+            class="input-field-lg"
+            placeholder="Ex: S12345 ou G1234" />
 
-          <div>
-            <label class="mb-2 block text-sm font-semibold text-gray-700">Email</label>
-            <input
-              formControlName="email"
-              class="input-field-lg"
-              placeholder="ton@email.com" />
+          <div
+            *ngIf="loginForm.controls.matricule.touched && loginForm.controls.matricule.invalid"
+            class="mt-2 text-sm text-red-600">
+            Le matricule est obligatoire.
           </div>
+        </div>
 
-          <button
-            type="submit"
-            class="primary-button-lg w-full">
-            Se connecter
-          </button>
+        <button
+          type="submit"
+          class="primary-button-lg w-full">
+          Se connecter
+        </button>
 
-        </form>
-
-        <div class="mt-6 text-center text-sm text-gray-600">
+        <div class="text-center text-sm text-gray-600">
           Pas encore de compte ?
           <a routerLink="/register" class="font-semibold text-emerald-700 hover:underline">
-            Créer un compte
+            S’inscrire
           </a>
         </div>
-
-      </div>
+      </form>
     </div>
 
   </div>

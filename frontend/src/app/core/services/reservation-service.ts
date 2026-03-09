@@ -17,6 +17,10 @@ export class ReservationService {
 
   private reservations = signal<ReservationModel[]>(this.read());
 
+  // =========================
+  // Lecture principale
+  // =========================
+
   list(): ReservationModel[] {
     const all = this.reservations();
     const normalized = this.normalize(all);
@@ -99,6 +103,10 @@ export class ReservationService {
     return invited ? 'PENDING' : 'ACCEPTED';
   }
 
+  // =========================
+  // Disponibilité / validation
+  // =========================
+
   isSlotAvailable(clubName: string, courtName: string, date: string, time: string): boolean {
     const c = (clubName || '').trim().toLowerCase();
     const t = (courtName || '').trim().toLowerCase();
@@ -113,6 +121,99 @@ export class ReservationService {
       (r.time || '').trim() === ti
     );
   }
+
+  canUserReserveClub(params: {
+    matricule: string;
+    userSiteName?: string;
+    clubName: string;
+    reservationDate: string;
+  }): { allowed: boolean; message: string } {
+    const matricule = String(params.matricule || '').trim();
+    const clubName = String(params.clubName || '').trim();
+    const reservationDate = String(params.reservationDate || '').trim();
+    const userSiteName = String(params.userSiteName || '').trim();
+
+    if (!matricule) {
+      return { allowed: false, message: 'Utilisateur introuvable.' };
+    }
+
+    if (!clubName) {
+      return { allowed: false, message: 'Club introuvable.' };
+    }
+
+    if (!reservationDate) {
+      return { allowed: false, message: 'Date de réservation manquante.' };
+    }
+
+    if (this.userService.isBookingBlocked(matricule)) {
+      return {
+        allowed: false,
+        message: 'Tu ne peux pas réserver pendant 7 jours suite à une annulation ou un match non complété.',
+      };
+    }
+
+    const memberType = this.userService.getMemberTypeFromMatricule(matricule);
+
+    if (memberType === 'SITE') {
+      const normalizedUserSite = userSiteName.toLowerCase();
+      const normalizedClub = clubName.toLowerCase();
+
+      if (!normalizedUserSite) {
+        return {
+          allowed: false,
+          message: 'Ton compte SITE n’est lié à aucun club.',
+        };
+      }
+
+      if (normalizedUserSite !== normalizedClub) {
+        return {
+          allowed: false,
+          message: 'Un membre SITE peut réserver uniquement dans son propre site.',
+        };
+      }
+    }
+
+    const maxDays =
+      memberType === 'GLOBAL' ? 21 :
+        memberType === 'SITE' ? 14 :
+          5;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const target = new Date(`${reservationDate}T00:00:00`);
+    if (isNaN(target.getTime())) {
+      return { allowed: false, message: 'Date invalide.' };
+    }
+
+    const diffMs = target.getTime() - today.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return {
+        allowed: false,
+        message: 'Impossible de réserver dans le passé.',
+      };
+    }
+
+    if (diffDays > maxDays) {
+      return {
+        allowed: false,
+        message:
+          memberType === 'GLOBAL'
+            ? 'Un membre GLOBAL peut réserver maximum 3 semaines à l’avance.'
+            : memberType === 'SITE'
+              ? 'Un membre SITE peut réserver maximum 2 semaines à l’avance.'
+              : 'Un membre FREE peut réserver maximum 5 jours à l’avance.',
+      };
+    }
+
+    return { allowed: true, message: '' };
+  }
+
+  // =========================
+  // Création / modification réservation
+  // =========================
 
   add(data: {
     organizerMatricule: string;
@@ -135,6 +236,21 @@ export class ReservationService {
       throw new Error('Données de réservation invalides.');
     }
 
+    const organizer = (data.organizerMatricule || '').trim();
+    if (!organizer) throw new Error('Organisateur manquant.');
+
+    const user = this.userService.getUserByMatricule(organizer);
+    const ruleCheck = this.canUserReserveClub({
+      matricule: organizer,
+      userSiteName: user?.siteName,
+      clubName,
+      reservationDate: date,
+    });
+
+    if (!ruleCheck.allowed) {
+      throw new Error(ruleCheck.message);
+    }
+
     const conflict = this.list().some(r =>
       r.status === 'CONFIRMED' &&
       (r.clubName || '').trim().toLowerCase() === clubName.toLowerCase() &&
@@ -146,9 +262,6 @@ export class ReservationService {
     if (conflict) {
       throw new Error('Ce créneau est déjà réservé.');
     }
-
-    const organizer = (data.organizerMatricule || '').trim();
-    if (!organizer) throw new Error('Organisateur manquant.');
 
     const nowIso = new Date().toISOString();
     const visibility = toVisibility(data.visibility);
@@ -197,6 +310,8 @@ export class ReservationService {
       invitedEmails,
       acceptedEmails: [],
       status: 'CONFIRMED',
+      organizerDebtApplied: false,
+      organizerDebtAmount: 0,
     };
 
     const all = [...this.reservations()];
@@ -205,6 +320,37 @@ export class ReservationService {
 
     return item;
   }
+
+  cancel(id: string): void {
+    const all = [...this.reservations()];
+    const idx = all.findIndex(r => r.id === id);
+    if (idx === -1) return;
+
+    const item = all[idx];
+    all[idx] = { ...item, status: 'CANCELED' };
+    this.write(all);
+
+    if (item.organizerMatricule) {
+      this.userService.blockBookingForDays(item.organizerMatricule, 7);
+    }
+  }
+
+  adminCancelReservation(id: string): void {
+    const all = [...this.reservations()];
+    const idx = all.findIndex(r => r.id === id);
+    if (idx === -1) return;
+
+    all[idx] = {
+      ...all[idx],
+      status: 'CANCELED',
+    };
+
+    this.write(all);
+  }
+
+  // =========================
+  // Invitations privées
+  // =========================
 
   inviteByEmails(matchId: string, emails: string[]): void {
     const all = [...this.reservations()];
@@ -276,104 +422,6 @@ export class ReservationService {
     this.write(all);
   }
 
-  join(matchId: string, matricule: string): void {
-    const m = (matricule || '').trim();
-    if (!m) throw new Error('Matricule manquant.');
-
-    const all = [...this.reservations()];
-    const idx = all.findIndex(x => x.id === matchId);
-
-    if (idx === -1) throw new Error('Match introuvable.');
-
-    const r = all[idx];
-
-    if (r.status !== 'CONFIRMED') throw new Error('Match non disponible.');
-    if (r.visibility !== 'PUBLIC') throw new Error('Impossible de rejoindre un match privé.');
-    if ((r.players || []).some(p => (p.matricule || '').trim() === m)) {
-      throw new Error('Tu participes déjà à ce match.');
-    }
-    if ((r.players || []).length >= 4) throw new Error('Match complet.');
-
-    all[idx] = {
-      ...r,
-      players: [
-        ...(r.players || []),
-        {
-          matricule: m,
-          paid: false,
-          joinedAt: new Date().toISOString()
-        }
-      ]
-    };
-
-    this.write(all);
-  }
-
-  markPaid(matchId: string, matricule: string): void {
-    const m = (matricule || '').trim();
-    if (!m) throw new Error('Matricule manquant.');
-
-    const all = [...this.reservations()];
-    const idx = all.findIndex(x => x.id === matchId);
-
-    if (idx === -1) throw new Error('Match introuvable.');
-
-    const r = all[idx];
-
-    all[idx] = {
-      ...r,
-      players: (r.players || []).map(p =>
-        (p.matricule || '').trim() === m ? { ...p, paid: true } : p
-      )
-    };
-
-    this.write(all);
-  }
-
-  joinAndMarkPaid(matchId: string, matricule: string): void {
-    const m = (matricule || '').trim();
-    if (!m) throw new Error('Matricule manquant.');
-
-    const all = [...this.reservations()];
-    const idx = all.findIndex(x => x.id === matchId);
-
-    if (idx === -1) throw new Error('Match introuvable.');
-
-    const r = all[idx];
-
-    if (r.status !== 'CONFIRMED') throw new Error('Match non disponible.');
-    if (r.visibility !== 'PUBLIC') throw new Error('Impossible de rejoindre un match privé.');
-    if ((r.players || []).some(p => (p.matricule || '').trim() === m)) {
-      throw new Error('Tu participes déjà à ce match.');
-    }
-    if ((r.players || []).length >= 4) throw new Error('Match complet.');
-
-    all[idx] = {
-      ...r,
-      players: [
-        ...(r.players || []),
-        {
-          matricule: m,
-          paid: true,
-          joinedAt: new Date().toISOString()
-        }
-      ]
-    };
-
-    this.write(all);
-
-    this.notificationService.add({
-      type: 'MATCH_JOINED',
-      title: 'Des joueurs ont rejoint',
-      message: `Un joueur a rejoint ton match sur ${r.courtName}.`,
-      matchId: r.id,
-      clubName: r.clubName,
-      date: r.date,
-      time: r.time,
-      userMatricule: r.organizerMatricule,
-    });
-  }
-
   acceptPrivateInvitationAndMarkPaid(matchId: string, email: string, matricule: string): void {
     const e = (email || '').trim().toLowerCase();
     const m = (matricule || '').trim();
@@ -381,12 +429,24 @@ export class ReservationService {
     if (!e) throw new Error('Email manquant.');
     if (!m) throw new Error('Matricule manquant.');
 
+    const user = this.userService.getUserByMatricule(m);
     const all = [...this.reservations()];
     const idx = all.findIndex(x => x.id === matchId);
 
     if (idx === -1) throw new Error('Match introuvable.');
 
     const match = all[idx];
+
+    const ruleCheck = this.canUserReserveClub({
+      matricule: m,
+      userSiteName: user?.siteName,
+      clubName: match.clubName,
+      reservationDate: match.date,
+    });
+
+    if (!ruleCheck.allowed) {
+      throw new Error(ruleCheck.message);
+    }
 
     if (match.status !== 'CONFIRMED') throw new Error('Match non disponible.');
     if (match.visibility !== 'PRIVATE') throw new Error('Ce match n’est pas privé.');
@@ -447,27 +507,162 @@ export class ReservationService {
     });
   }
 
-  cancel(id: string): void {
-    const all = [...this.reservations()];
-    const idx = all.findIndex(r => r.id === id);
-    if (idx === -1) return;
+  // =========================
+  // Matches publics / participation
+  // =========================
 
-    all[idx] = { ...all[idx], status: 'CANCELED' };
-    this.write(all);
-  }
+  join(matchId: string, matricule: string): void {
+    const m = (matricule || '').trim();
+    if (!m) throw new Error('Matricule manquant.');
 
-  adminCancelReservation(id: string): void {
+    const user = this.userService.getUserByMatricule(m);
     const all = [...this.reservations()];
-    const idx = all.findIndex(r => r.id === id);
-    if (idx === -1) return;
+    const idx = all.findIndex(x => x.id === matchId);
+
+    if (idx === -1) throw new Error('Match introuvable.');
+
+    const r = all[idx];
+
+    const ruleCheck = this.canUserReserveClub({
+      matricule: m,
+      userSiteName: user?.siteName,
+      clubName: r.clubName,
+      reservationDate: r.date,
+    });
+
+    if (!ruleCheck.allowed) {
+      throw new Error(ruleCheck.message);
+    }
+
+    if (r.status !== 'CONFIRMED') throw new Error('Match non disponible.');
+    if (r.visibility !== 'PUBLIC') throw new Error('Impossible de rejoindre un match privé.');
+    if ((r.players || []).some(p => (p.matricule || '').trim() === m)) {
+      throw new Error('Tu participes déjà à ce match.');
+    }
+    if ((r.players || []).length >= 4) throw new Error('Match complet.');
 
     all[idx] = {
-      ...all[idx],
-      status: 'CANCELED',
+      ...r,
+      players: [
+        ...(r.players || []),
+        {
+          matricule: m,
+          paid: false,
+          joinedAt: new Date().toISOString()
+        }
+      ]
     };
 
     this.write(all);
   }
+
+  markPaid(matchId: string, matricule: string): void {
+    const m = (matricule || '').trim();
+    if (!m) throw new Error('Matricule manquant.');
+
+    const all = [...this.reservations()];
+    const idx = all.findIndex(x => x.id === matchId);
+
+    if (idx === -1) throw new Error('Match introuvable.');
+
+    const r = all[idx];
+
+    all[idx] = {
+      ...r,
+      players: (r.players || []).map(p =>
+        (p.matricule || '').trim() === m ? { ...p, paid: true } : p
+      )
+    };
+
+    this.write(all);
+  }
+
+  joinAndMarkPaid(matchId: string, matricule: string): void {
+    const m = (matricule || '').trim();
+    if (!m) throw new Error('Matricule manquant.');
+
+    const user = this.userService.getUserByMatricule(m);
+    const all = [...this.reservations()];
+    const idx = all.findIndex(x => x.id === matchId);
+
+    if (idx === -1) throw new Error('Match introuvable.');
+
+    const r = all[idx];
+
+    const ruleCheck = this.canUserReserveClub({
+      matricule: m,
+      userSiteName: user?.siteName,
+      clubName: r.clubName,
+      reservationDate: r.date,
+    });
+
+    if (!ruleCheck.allowed) {
+      throw new Error(ruleCheck.message);
+    }
+
+    if (r.status !== 'CONFIRMED') throw new Error('Match non disponible.');
+    if (r.visibility !== 'PUBLIC') throw new Error('Impossible de rejoindre un match privé.');
+    if ((r.players || []).some(p => (p.matricule || '').trim() === m)) {
+      throw new Error('Tu participes déjà à ce match.');
+    }
+    if ((r.players || []).length >= 4) throw new Error('Match complet.');
+
+    all[idx] = {
+      ...r,
+      players: [
+        ...(r.players || []),
+        {
+          matricule: m,
+          paid: true,
+          joinedAt: new Date().toISOString()
+        }
+      ]
+    };
+
+    this.write(all);
+
+    this.notificationService.add({
+      type: 'MATCH_JOINED',
+      title: 'Des joueurs ont rejoint',
+      message: `Un joueur a rejoint ton match sur ${r.courtName}.`,
+      matchId: r.id,
+      clubName: r.clubName,
+      date: r.date,
+      time: r.time,
+      userMatricule: r.organizerMatricule,
+    });
+  }
+
+  // =========================
+  // Dette organisateur
+  // =========================
+
+  getOrganizerOutstandingDebt(matricule: string): number {
+    const m = String(matricule || '').trim();
+    if (!m) return 0;
+
+    return this.list()
+      .filter(match => (match.organizerMatricule || '').trim() === m)
+      .reduce((sum, match) => sum + (Number(match.organizerDebtAmount) || 0), 0);
+  }
+
+  clearOrganizerDebtForMatch(matchId: string): void {
+    const all = [...this.reservations()];
+    const idx = all.findIndex(r => r.id === matchId);
+    if (idx === -1) return;
+
+    all[idx] = {
+      ...all[idx],
+      organizerDebtAmount: 0,
+      organizerDebtApplied: false,
+    };
+
+    this.write(all);
+  }
+
+  // =========================
+  // Réservations par site
+  // =========================
 
   listBySite(siteName: string): ReservationModel[] {
     const site = (siteName || '').trim().toLowerCase();
@@ -517,6 +712,10 @@ export class ReservationService {
         total: Number(r.total) || 0,
       }));
   }
+
+  // =========================
+  // Statistiques
+  // =========================
 
   getGlobalStats() {
     const all = this.list().filter(r => r.status === 'CONFIRMED');
@@ -653,6 +852,10 @@ export class ReservationService {
     };
   }
 
+  // =========================
+  // Normalisation / règles automatiques
+  // =========================
+
   private normalize(all: ReservationModel[]): { data: ReservationModel[]; changed: boolean } {
     let changed = false;
     const now = new Date();
@@ -666,6 +869,8 @@ export class ReservationService {
         players: Array.isArray(r.players) ? r.players : [],
         invitedEmails: Array.isArray(r.invitedEmails) ? r.invitedEmails : [],
         acceptedEmails: Array.isArray(r.acceptedEmails) ? r.acceptedEmails : [],
+        organizerDebtApplied: !!r.organizerDebtApplied,
+        organizerDebtAmount: Number(r.organizerDebtAmount) || 0,
       };
 
       if (normalized.status !== 'CONFIRMED') return normalized;
@@ -707,6 +912,19 @@ export class ReservationService {
         }
       }
 
+      if (daysToStart <= 1 && daysToStart > 0 && !isComplete && !normalized.organizerDebtApplied) {
+        const debt = Number(normalized.total) || 0;
+        changed = true;
+
+        this.userService.blockBookingForDays(normalized.organizerMatricule, 7);
+
+        return {
+          ...normalized,
+          organizerDebtApplied: true,
+          organizerDebtAmount: debt,
+        };
+      }
+
       return normalized;
     });
 
@@ -729,6 +947,10 @@ export class ReservationService {
     const m = s.match(/(\d{2}:\d{2})/);
     return m ? m[1] : '';
   }
+
+  // =========================
+  // Persistance localStorage
+  // =========================
 
   private read(): ReservationModel[] {
     try {
@@ -760,6 +982,8 @@ export class ReservationService {
           ? r.acceptedEmails.map((e: any) => String(e ?? '').trim().toLowerCase()).filter(Boolean)
           : [],
         status: String(r?.status).toUpperCase() === 'CANCELED' ? 'CANCELED' : 'CONFIRMED',
+        organizerDebtApplied: !!r?.organizerDebtApplied,
+        organizerDebtAmount: Number(r?.organizerDebtAmount) || 0,
       }));
     } catch {
       return [];

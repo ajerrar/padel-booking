@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CourtListModel } from '../../models/court.model';
-import { CommonModule } from "@angular/common";
+
 
 @Injectable({ providedIn: 'root' })
 
@@ -47,12 +47,12 @@ export class CourtCardService {
   }
 
 
-  getterrains(): CourtListModel[] {
+  getCourts(): CourtListModel[] {
 
     return Object.values(this.courtsByClubId).flat();
   }
 
-  GetCourtById(clubId: number, courtId: number): CourtListModel | undefined {
+  getCourtById(clubId: number, courtId: number): CourtListModel | undefined {
     const courts = this.courtsByClubId[clubId] ?? [];
     return courts.find(c => c.id === courtId);
   }

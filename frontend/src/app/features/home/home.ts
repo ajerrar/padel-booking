@@ -7,7 +7,6 @@ import { Content } from '../home/components/content/content';
   standalone: true,
   imports: [Content],
   templateUrl: './home.html',
-  styleUrls: ['./home.css']
 })
 export class Home {
 

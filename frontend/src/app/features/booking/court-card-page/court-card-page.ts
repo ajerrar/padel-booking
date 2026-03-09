@@ -3,25 +3,24 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { CourtCardService } from '../../../core/services/court-card-service';
+import { CourtService } from '../../../core/services/court.service';
+import { ClubService } from '../../../core/services/club.service';
 import { CourtListModel } from '../../../models/court.model';
 import { ReservationService } from '../../../core/services/reservation-service';
-import { CourtService } from '../../../core/services/court.service';
 import { ReservationModel } from '../../../models/reservation.model';
 import { SlotPolicyService } from '../../../core/services/slot-policy.service';
-
+import { getTodayIso } from '../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-court-card-page',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './court-card-page.html',
-  styleUrls: ['./court-card-page.css'],
 })
 export class CourtCardPage {
-  private courtCardService = inject(CourtCardService);
-  private reservationService = inject(ReservationService);
   private courtService = inject(CourtService);
+  private clubService = inject(ClubService);
+  private reservationService = inject(ReservationService);
   private slotPolicyService = inject(SlotPolicyService);
 
   private route = inject(ActivatedRoute);
@@ -33,8 +32,8 @@ export class CourtCardPage {
   );
 
   selectedDate = toSignal(
-    this.route.queryParamMap.pipe(map(q => (q.get('date') ?? this.todayISO()).trim())),
-    { initialValue: this.todayISO() }
+    this.route.queryParamMap.pipe(map(q => (q.get('date') ?? getTodayIso()).trim())),
+    { initialValue: getTodayIso() }
   );
 
   selectedTime = toSignal(
@@ -42,13 +41,12 @@ export class CourtCardPage {
     { initialValue: '' }
   );
 
-  clubName = computed(() => {
-    const id = this.clubId();
-    return this.courtService.getterrains().find(c => c.id === id)?.name ?? '—';
-  });
+  club = computed(() => this.clubService.getClubById(this.clubId()));
 
-  listeTerrain = computed<CourtListModel[]>(() =>
-    this.courtCardService.getCourtsByClubId(this.clubId())
+  clubName = computed(() => this.club()?.name ?? '—');
+
+  listCourt = computed<CourtListModel[]>(() =>
+    this.courtService.getCourtsByClubId(this.clubId())
   );
 
   isClosed = computed(() => {
@@ -72,7 +70,6 @@ export class CourtCardPage {
     return this.slotPolicyService.getSlotsForSite(site, date);
   });
 
-  // ✅ propriété qui manquait
   effectiveSelectedTime = computed(() => {
     const selected = (this.selectedTime() || '').trim();
     const slots = this.siteSlots();
@@ -88,32 +85,31 @@ export class CourtCardPage {
 
     if (!club || club === '—' || !time || this.isClosed()) return [];
 
-    return this.listeTerrain().filter(court =>
+    return this.listCourt().filter(court =>
       this.reservationService.isSlotAvailable(club, court.name, date, time)
     );
   });
 
   publicMatches = computed<ReservationModel[]>(() => {
-    const club = (this.clubName() || '').trim();
+    const club = (this.clubName() || '').trim().toLowerCase();
     const date = (this.selectedDate() || '').trim();
-    const time = (this.effectiveSelectedTime() || '').trim();
 
-    if (!club || club === '—' || !time || this.isClosed()) return [];
+    if (!club || club === '—' || this.isClosed()) return [];
 
     return this.reservationService
       .list()
-      .filter(r =>
-        r.status === 'CONFIRMED' &&
-        r.visibility === 'PUBLIC' &&
-        (r.clubName || '').trim() === club &&
-        (r.date || '').trim() === date &&
-        (r.time || '').trim() === time &&
-        (r.players?.length ?? 0) < 4
-      );
+      .filter(match => match.status === 'CONFIRMED')
+      .filter(match => match.visibility === 'PUBLIC')
+      .filter(match => (match.players?.length ?? 0) < 4)
+      .filter(match => {
+        const matchClub = (match.clubName || match.siteName || '').trim().toLowerCase();
+        return matchClub === club;
+      })
+      .filter(match => (match.date || '').trim() === date);
   });
 
-  goToDetail(c: CourtListModel) {
-    this.router.navigate(['/terrain', this.clubId(), 'court', c.id], {
+  goToDetail(court: CourtListModel) {
+    this.router.navigate(['/terrain', this.clubId(), 'court', court.id], {
       queryParams: {
         date: this.selectedDate(),
         time: this.effectiveSelectedTime(),
@@ -121,17 +117,17 @@ export class CourtCardPage {
     });
   }
 
-  goToMatch(m: ReservationModel) {
-    this.router.navigate(['/match', m.id]);
+  goToMatch(match: ReservationModel) {
+    this.router.navigate(['/match', match.id]);
   }
 
-  playersLabel(m: ReservationModel): string {
-    const n = m.players?.length ?? 0;
-    return `${n}/4 joueurs`;
+  playersLabel(match: ReservationModel): string {
+    const count = match.players?.length ?? 0;
+    return `${count}/4 joueurs`;
   }
 
   getClubImage(): string {
-    const images: { [key: number]: string } = {
+    const images: Record<number, string> = {
       1: '/assets/image/waterloo.png',
       2: '/assets/image/uccle.png',
       3: '/assets/image/forest.png',
@@ -141,13 +137,5 @@ export class CourtCardPage {
 
   goHome() {
     this.router.navigate(['/home']);
-  }
-
-  private todayISO(): string {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
   }
 }

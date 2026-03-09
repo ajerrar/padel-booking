@@ -19,12 +19,12 @@
       </button>
     </div>
 
-    <div class="mt-8 grid gap-6 lg:grid-cols-2">
+    <div class="mt-8 space-y-6">
 
       <div class="section-card-plain">
         <h2 class="section-title">Récapitulatif</h2>
 
-        <div class="mt-5 space-y-3">
+        <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div class="sub-card">
             <div class="field-label">Club</div>
             <div class="field-value">{{ clubName() }}</div>
@@ -36,8 +36,15 @@
           </div>
 
           <div class="sub-card">
+            <div class="field-label">Type de match</div>
+            <div class="field-value">
+              {{ visibility() === 'PUBLIC' ? 'Match public' : 'Match privé' }}
+            </div>
+          </div>
+
+          <div class="sub-card">
             <div class="field-label">Date</div>
-            <div class="field-value">{{ date() || '—' }}</div>
+            <div class="field-value">{{ formatDisplayDate(date()) }}</div>
           </div>
 
           <div class="sub-card">
@@ -45,9 +52,14 @@
             <div class="field-value">{{ time() }}</div>
           </div>
 
+          <div class="sub-card" *ngIf="outstandingDebt() > 0">
+            <div class="field-label">Solde précédent</div>
+            <div class="field-value text-red-600">€{{ outstandingDebt() }}</div>
+          </div>
+
           <div class="rounded-2xl bg-emerald-50 p-4">
-            <div class="text-xs text-emerald-700">Montant à payer</div>
-            <div class="mt-1 text-2xl font-extrabold text-emerald-700">€{{ total() }}</div>
+            <div class="field-label text-emerald-700">Montant à payer</div>
+            <div class="mt-1 text-xl font-extrabold text-emerald-700">€{{ total() }}</div>
           </div>
         </div>
       </div>
@@ -63,6 +75,9 @@
               formControlName="cardHolder"
               class="input-field-lg"
               placeholder="Nom complet" />
+            <p *ngIf="isFieldInvalid('cardHolder')" class="mt-2 text-sm text-red-600">
+              {{ getFieldError('cardHolder') }}
+            </p>
           </div>
 
           <div>
@@ -71,6 +86,9 @@
               formControlName="cardNumber"
               class="input-field-lg"
               placeholder="1234123412341234" />
+            <p *ngIf="isFieldInvalid('cardNumber')" class="mt-2 text-sm text-red-600">
+              {{ getFieldError('cardNumber') }}
+            </p>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
@@ -80,6 +98,9 @@
                 formControlName="expirationDate"
                 class="input-field-lg"
                 placeholder="MM/AA" />
+              <p *ngIf="isFieldInvalid('expirationDate')" class="mt-2 text-sm text-red-600">
+                {{ getFieldError('expirationDate') }}
+              </p>
             </div>
 
             <div>
@@ -88,6 +109,9 @@
                 formControlName="cvc"
                 class="input-field-lg"
                 placeholder="123" />
+              <p *ngIf="isFieldInvalid('cvc')" class="mt-2 text-sm text-red-600">
+                {{ getFieldError('cvc') }}
+              </p>
             </div>
           </div>
 

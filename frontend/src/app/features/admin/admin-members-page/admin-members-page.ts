@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user-service';
+import { getRoleLabel } from '../../../core/utils/user.utils';
 
 type RoleFilter = 'ALL' | 'USER' | 'ADMIN_GLOBAL' | 'ADMIN_SITE';
 
@@ -10,10 +11,8 @@ type RoleFilter = 'ALL' | 'USER' | 'ADMIN_GLOBAL' | 'ADMIN_SITE';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-members-page.html',
-  styleUrls: ['./admin-members-page.css'],
 })
 export class AdminMembersPage {
-
   private userService = inject(UserService);
 
   searchQuery = signal('');
@@ -22,7 +21,6 @@ export class AdminMembersPage {
   allUsers = computed(() => this.userService.listUsers());
 
   filteredUsers = computed(() => {
-
     const query = this.searchQuery().trim().toLowerCase();
     const role = this.selectedRoleFilter();
 
@@ -30,7 +28,6 @@ export class AdminMembersPage {
 
     if (role !== 'ALL') {
       users = users.filter(user => {
-
         const userRole = String(user.role || '').trim();
 
         if (role === 'USER') return userRole === 'User';
@@ -38,7 +35,6 @@ export class AdminMembersPage {
         if (role === 'ADMIN_SITE') return userRole === 'AdminClub';
 
         return true;
-
       });
     }
 
@@ -51,9 +47,10 @@ export class AdminMembersPage {
     }
 
     return users.sort((a, b) =>
-      `${a.lastName || ''} ${a.firstName || ''}`.localeCompare(`${b.lastName || ''} ${b.firstName || ''}`)
+      `${a.lastName || ''} ${a.firstName || ''}`.localeCompare(
+        `${b.lastName || ''} ${b.firstName || ''}`
+      )
     );
-
   });
 
   totalMembers = computed(() => this.allUsers().length);
@@ -79,17 +76,10 @@ export class AdminMembersPage {
   }
 
   getRoleLabel(role: string): string {
-
-    const r = String(role || '').trim();
-
-    if (r === 'AdminGlobal') return 'Admin global';
-    if (r === 'AdminClub') return 'Admin site';
-
-    return 'Utilisateur';
+    return getRoleLabel(role);
   }
 
   getRoleBadgeClass(role: string): string {
-
     const r = String(role || '').trim();
 
     if (r === 'AdminGlobal') return 'bg-violet-50 text-violet-700';

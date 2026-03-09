@@ -5,8 +5,8 @@ import { ReservationService } from '../../../core/services/reservation-service';
 import { UserService } from '../../../core/services/user-service';
 import { ReservationModel } from '../../../models/reservation.model';
 import { FormsModule } from '@angular/forms';
+import { formatDisplayDate } from '../../../core/utils/date.utils';
 import {
-  getAmountPerPlayer,
   getMatchStartTimestamp,
   getPlayersLabel,
   getRemainingPlaces,
@@ -18,7 +18,6 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './match-detail-page.html',
-  styleUrls: ['./match-detail-page.css'],
 })
 export class MatchDetailPage {
   private route = inject(ActivatedRoute);
@@ -68,6 +67,38 @@ export class MatchDetailPage {
 
   remainingPlaces = computed(() => getRemainingPlaces(this.match()?.players.length ?? 0));
 
+  outstandingDebt = computed(() => {
+    const user = this.currentUser();
+    if (!user) return 0;
+
+    return this.reservationService.getOrganizerOutstandingDebt(user.matricule);
+  });
+
+  matchBaseAmount = computed(() => {
+    const match = this.match();
+    return Number((match?.total ?? 0).toFixed(2));
+  });
+
+  totalToPayNow = computed(() => {
+    return Number((this.matchBaseAmount() + this.outstandingDebt()).toFixed(2));
+  });
+
+  private canCurrentUserAccessMatchDate(): { allowed: boolean; message: string } {
+    const user = this.currentUser();
+    const match = this.match();
+
+    if (!user || !match) {
+      return { allowed: false, message: 'Match introuvable.' };
+    }
+
+    return this.reservationService.canUserReserveClub({
+      matricule: user.matricule,
+      userSiteName: user.siteName,
+      clubName: match.clubName,
+      reservationDate: match.date,
+    });
+  }
+
   canJoinPublicMatch = computed(() => {
     const user = this.currentUser();
     const match = this.match();
@@ -79,7 +110,8 @@ export class MatchDetailPage {
     if (this.isComplete()) return false;
     if (this.isMatchPast()) return false;
 
-    return true;
+    const ruleCheck = this.canCurrentUserAccessMatchDate();
+    return ruleCheck.allowed;
   });
 
   canInvitePlayers = computed(() => {
@@ -113,6 +145,9 @@ export class MatchDetailPage {
     if (match.status !== 'CONFIRMED') return false;
     if (this.isMatchPast()) return false;
 
+    const ruleCheck = this.canCurrentUserAccessMatchDate();
+    if (!ruleCheck.allowed) return false;
+
     if (this.isInvitedByEmail()) return true;
     if (this.isCurrentUserParticipant() && !this.isCurrentUserPaid()) return true;
 
@@ -124,7 +159,19 @@ export class MatchDetailPage {
   }
 
   getAmountPerPlayer(): number {
-    return getAmountPerPlayer(this.match()?.total ?? 0);
+    return this.matchBaseAmount();
+  }
+
+  getDisplayedAmountToPay(): number {
+    return this.totalToPayNow();
+  }
+
+  getMatchTotal(): number {
+    return Number((((this.match()?.total ?? 0) * 4)).toFixed(2));
+  }
+
+  formatDisplayDate(date: string | undefined | null): string {
+    return formatDisplayDate(date);
   }
 
   joinPublicMatch() {
@@ -141,6 +188,12 @@ export class MatchDetailPage {
 
     if (!match) {
       this.errorMessage.set('Match introuvable.');
+      return;
+    }
+
+    const ruleCheck = this.canCurrentUserAccessMatchDate();
+    if (!ruleCheck.allowed) {
+      this.errorMessage.set(ruleCheck.message);
       return;
     }
 
@@ -180,6 +233,12 @@ export class MatchDetailPage {
       return;
     }
 
+    const ruleCheck = this.canCurrentUserAccessMatchDate();
+    if (!ruleCheck.allowed) {
+      this.errorMessage.set(ruleCheck.message);
+      return;
+    }
+
     if (!this.canPayPrivateSeat()) {
       this.errorMessage.set('Tu ne peux pas payer cette place.');
       return;
@@ -204,17 +263,48 @@ export class MatchDetailPage {
     this.successMessage.set('');
 
     const match = this.match();
+    const currentUser = this.currentUser();
+
     if (!match) {
       this.errorMessage.set('Match introuvable.');
       return;
     }
 
     const emails = [this.inviteEmail1, this.inviteEmail2, this.inviteEmail3]
-      .map(value => (value || '').trim())
+      .map(value => String(value || '').trim().toLowerCase())
       .filter(Boolean);
 
     if (!emails.length) {
       this.errorMessage.set('Ajoute au moins un email.');
+      return;
+    }
+
+    const invalidEmail = emails.find(email => !this.isValidEmail(email));
+    if (invalidEmail) {
+      this.errorMessage.set(`Format email invalide : ${invalidEmail}`);
+      return;
+    }
+
+    const duplicates = new Set<string>();
+    for (const email of emails) {
+      if (duplicates.has(email)) {
+        this.errorMessage.set(`Email en double : ${email}`);
+        return;
+      }
+      duplicates.add(email);
+    }
+
+    if (currentUser?.email) {
+      const myEmail = String(currentUser.email).trim().toLowerCase();
+      if (emails.includes(myEmail)) {
+        this.errorMessage.set('Tu ne peux pas t’inviter toi-même.');
+        return;
+      }
+    }
+
+    const unknownEmail = emails.find(email => !this.emailExistsInUsers(email));
+    if (unknownEmail) {
+      this.errorMessage.set(`Cette adresse n'existe pas dans les utilisateurs : ${unknownEmail}`);
       return;
     }
 
@@ -227,6 +317,18 @@ export class MatchDetailPage {
     } catch (error: any) {
       this.errorMessage.set(error?.message ?? 'Erreur lors de l’ajout des invitations.');
     }
+  }
+
+  private isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  private emailExistsInUsers(email: string): boolean {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    return this.userService.listUsers().some(
+      user => String(user.email || '').trim().toLowerCase() === normalizedEmail
+    );
   }
 
   navigateBack() {
@@ -250,4 +352,31 @@ export class MatchDetailPage {
 
     return getMatchStartTimestamp(match.date, match.time);
   }
+  participationInfoMessage = computed(() => {
+    const user = this.currentUser();
+    const match = this.match();
+
+    if (!user || !match) return '';
+
+    const ruleCheck = this.reservationService.canUserReserveClub({
+      matricule: user.matricule,
+      userSiteName: user.siteName,
+      clubName: match.clubName,
+      reservationDate: match.date,
+    });
+
+    if (!ruleCheck.allowed) {
+      return ruleCheck.message;
+    }
+
+    if (this.isCurrentUserParticipant() && !this.isCurrentUserPaid()) {
+      return 'Tu es invité à ce match, mais ta place est encore en attente de paiement.';
+    }
+
+    if (this.isCurrentUserParticipant() && this.isCurrentUserPaid()) {
+      return 'Tu participes déjà à ce match.';
+    }
+
+    return '';
+  });
 }

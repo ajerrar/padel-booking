@@ -7,13 +7,13 @@ import { UserService } from '../../../core/services/user-service';
 import { SlotPolicyService } from '../../../core/services/slot-policy.service';
 import { StatCard } from '../../../shared/components/stat-card/stat-card';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { getTodayIso } from '../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-admin-site-dashboard-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, StatCard , PageHeader, RouterLink],
+  imports: [CommonModule, FormsModule, StatCard, PageHeader, RouterLink],
   templateUrl: './admin-site-dashboard-page.html',
-  styleUrls: ['./admin-site-dashboard-page.css'],
 })
 export class AdminSiteDashboardPage {
   private reservationService = inject(ReservationService);
@@ -25,7 +25,7 @@ export class AdminSiteDashboardPage {
   infoMessage = signal('');
   errorMessage = signal('');
   selectedClosedDate = signal('');
-  selectedScheduleDate = signal(this.getTodayIso());
+  selectedScheduleDate = signal(getTodayIso());
 
   siteName = computed(() => this.currentUser()?.siteName || '');
 
@@ -108,14 +108,6 @@ export class AdminSiteDashboardPage {
   }
 
   handleScheduleDateChange(value: string) {
-    this.selectedScheduleDate.set(value || this.getTodayIso());
-  }
-
-  private getTodayIso(): string {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    this.selectedScheduleDate.set(value || getTodayIso());
   }
 }

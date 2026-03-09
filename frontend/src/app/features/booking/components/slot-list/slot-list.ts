@@ -8,7 +8,6 @@ export type SlotItem = { time: string; isAvailable: boolean };
   standalone: true,
   imports: [CommonModule],
   templateUrl: './slot-list.html',
-  styleUrls: ['./slot-list.css'],
 })
 export class SlotList {
   @Input() selectedDate = '';           // YYYY-MM-DD

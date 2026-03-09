@@ -136,6 +136,44 @@
             </div>
           </div>
 
+          <div class="sub-card">
+            <div class="field-label">Type de match</div>
+
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                (click)="setMatchVisibility('PRIVATE')"
+                class="rounded-xl border px-4 py-3 text-sm font-semibold"
+                [class.bg-violet-600]="matchVisibility() === 'PRIVATE'"
+                [class.text-white]="matchVisibility() === 'PRIVATE'"
+                [class.border-violet-600]="matchVisibility() === 'PRIVATE'"
+                [class.bg-white]="matchVisibility() !== 'PRIVATE'"
+                [class.text-gray-700]="matchVisibility() !== 'PRIVATE'"
+                [class.hover:bg-gray-50]="matchVisibility() !== 'PRIVATE'">
+                Match privé
+              </button>
+
+              <button
+                type="button"
+                (click)="setMatchVisibility('PUBLIC')"
+                class="rounded-xl border px-4 py-3 text-sm font-semibold"
+                [class.bg-sky-600]="matchVisibility() === 'PUBLIC'"
+                [class.text-white]="matchVisibility() === 'PUBLIC'"
+                [class.border-sky-600]="matchVisibility() === 'PUBLIC'"
+                [class.bg-white]="matchVisibility() !== 'PUBLIC'"
+                [class.text-gray-700]="matchVisibility() !== 'PUBLIC'"
+                [class.hover:bg-gray-50]="matchVisibility() !== 'PUBLIC'">
+                Match public
+              </button>
+            </div>
+
+            <p class="mt-2 text-xs text-gray-600">
+              {{ matchVisibility() === 'PUBLIC'
+              ? 'Les autres joueurs pourront voir et rejoindre ce match.'
+              : 'Seules les personnes invitées pourront rejoindre ce match.' }}
+            </p>
+          </div>
+
           <div class="rounded-2xl border p-4">
             <div class="flex items-center justify-between text-sm">
               <span class="text-gray-600">Montant du match</span>
@@ -150,6 +188,10 @@
               <span class="text-xl font-extrabold text-gray-900">€{{ totalPrice() }}</span>
             </div>
           </div>
+        </div>
+
+        <div *ngIf="errorMessage()" class="status-error mt-4">
+          {{ errorMessage() }}
         </div>
 
         <button
@@ -212,6 +254,13 @@
                     <div class="field-value">
                       {{ selectedSlot()?.time ? (selectedSlot()!.time + ' → ' + nextHourLabel(selectedSlot()!.time)) : '—' }}
                     </div>
+                  </div>
+                </div>
+
+                <div class="sub-card">
+                  <div class="field-label">Type de match</div>
+                  <div class="field-value">
+                    {{ matchVisibility() === 'PUBLIC' ? 'Match public' : 'Match privé' }}
                   </div>
                 </div>
 

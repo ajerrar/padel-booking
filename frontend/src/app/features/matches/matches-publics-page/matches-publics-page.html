@@ -5,10 +5,13 @@
       <div>
         <div class="text-sm text-gray-600">
           Accueil <span class="mx-1">›</span> Matches publics
-          <app-page-header
-            title="Matches publics"
-            subtitle="Trouve un match public et rejoins une place disponible.">
-          </app-page-header>
+        </div>
+
+        <app-page-header
+          title="Matches publics"
+          subtitle="Trouve un match public et rejoins une place disponible.">
+        </app-page-header>
+      </div>
 
       <button
         (click)="navigateToHome()"
@@ -71,7 +74,7 @@
 
               <div class="sub-card-bordered text-right">
                 <div class="field-label">Total match</div>
-                <div class="mt-1 text-2xl font-extrabold text-gray-900">€{{ match.total }}</div>
+                <div class="mt-1 text-2xl font-extrabold text-gray-900">€{{ getMatchTotal(match) }}</div>
                 <div class="text-xs text-gray-600">soit €{{ getAmountPerPlayer(match) }} / joueur</div>
               </div>
             </div>
@@ -79,7 +82,7 @@
             <div class="mt-5 grid gap-3 sm:grid-cols-4">
               <div class="sub-card">
                 <div class="field-label">Date</div>
-                <div class="field-value">{{ match.date || '—' }}</div>
+                <div class="field-value">{{ formatDisplayDate(match.date) }}</div>
               </div>
 
               <div class="sub-card">
@@ -148,7 +151,7 @@
               (click)="navigateToMatchDetail(match.id)"
               class="w-full rounded-2xl border bg-white px-4 py-3 text-left hover:bg-gray-50">
               <div class="text-sm font-semibold text-gray-900">{{ match.clubName }}</div>
-              <div class="mt-1 text-xs text-gray-600">{{ match.date }} • {{ match.time }}</div>
+              <div class="mt-1 text-xs text-gray-600">{{ formatDisplayDate(match.date) }} • {{ match.time }}</div>
             </button>
           </div>
         </div>

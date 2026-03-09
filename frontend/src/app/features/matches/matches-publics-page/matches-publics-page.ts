@@ -4,19 +4,21 @@ import { Router } from '@angular/router';
 import { ReservationService } from '../../../core/services/reservation-service';
 import { UserService } from '../../../core/services/user-service';
 import { ReservationModel } from '../../../models/reservation.model';
-import {getAmountPerPlayer, getRemainingPlaces, getMatchStartTimestamp, isMatchPast,} from '../../../core/utils/match.utils';
+import {
+  getRemainingPlaces,
+  getMatchStartTimestamp,
+  isMatchPast,
+} from '../../../core/utils/match.utils';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
-
 
 type SortOption = 'SOONEST' | 'LATEST' | 'MOST_PLAYERS';
 
 @Component({
   selector: 'app-matches-publics-page',
   standalone: true,
-  imports: [CommonModule , EmptyState, PageHeader],
+  imports: [CommonModule, EmptyState, PageHeader],
   templateUrl: './matches-publics-page.html',
-  styleUrls: ['./matches-publics-page.css'],
 })
 export class PublicMatchesPage {
   private reservationService = inject(ReservationService);
@@ -30,23 +32,23 @@ export class PublicMatchesPage {
 
   publicMatches = computed<ReservationModel[]>(() => {
     const query = this.searchQuery().trim().toLowerCase();
+    const sort = this.selectedSortOption();
 
     let matches = this.reservationService
       .list()
       .filter(match => match.status === 'CONFIRMED')
       .filter(match => match.visibility === 'PUBLIC')
-      .filter(match => !isMatchPast(match.date, match.time))
-      .filter(match => (match.players?.length ?? 0) < 4);
+      .filter(match => (match.players?.length ?? 0) < 4)
+      .filter(match => !isMatchPast(match.date, match.time));
 
     if (query) {
       matches = matches.filter(match =>
-        `${match.clubName} ${match.courtName} ${match.date} ${match.time} ${match.siteName ?? ''}`
-          .toLowerCase()
-          .includes(query)
+        (match.clubName || '').toLowerCase().includes(query) ||
+        (match.courtName || '').toLowerCase().includes(query) ||
+        (match.date || '').toLowerCase().includes(query) ||
+        (match.time || '').toLowerCase().includes(query)
       );
     }
-
-    const sort = this.selectedSortOption();
 
     if (sort === 'SOONEST') {
       matches = [...matches].sort(
@@ -108,6 +110,17 @@ export class PublicMatchesPage {
   }
 
   getAmountPerPlayer(match: ReservationModel): number {
-    return getAmountPerPlayer(match.total);
+    return Number((match.total || 0).toFixed(2));
+  }
+
+  getMatchTotal(match: ReservationModel): number {
+    return Number((((match.total || 0) * 4)).toFixed(2));
+  }
+
+  formatDisplayDate(date: string | undefined | null): string {
+    if (!date) return '—';
+    const [year, month, day] = date.split('-');
+    if (!year || !month || !day) return date;
+    return `${day}/${month}/${year}`;
   }
 }
