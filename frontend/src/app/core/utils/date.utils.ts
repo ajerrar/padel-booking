@@ -1,3 +1,4 @@
+// Methode getTodayIso: recupere les donnees necessaires a cette fonctionnalite.
 export function getTodayIso(): string {
   const date = new Date();
   const year = date.getFullYear();
@@ -6,6 +7,7 @@ export function getTodayIso(): string {
   return `${year}-${month}-${day}`;
 }
 
+// Methode formatDisplayDate: construit la valeur attendue a partir des donnees disponibles.
 export function formatDisplayDate(date: string | undefined | null): string {
   if (!date) return '—';
 

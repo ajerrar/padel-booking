@@ -61,15 +61,18 @@ export class AdminSiteDashboardPage {
     return values.length ? Math.max(...values) : 1;
   });
 
+  // Methode getCourtWidth: recupere les donnees necessaires a cette fonctionnalite.
   getCourtWidth(value: number): number {
     const max = this.maxCourtMatches() || 1;
     return Math.max(10, Math.round((value / max) * 100));
   }
 
+  // Methode isWeekdayClosed: verifie une condition metier et renvoie le resultat attendu.
   isWeekdayClosed(day: number): boolean {
     return this.closedWeekdays().includes(day);
   }
 
+  // Methode toggleClosedWeekday: gere toggle closed weekday de ce bloc.
   toggleClosedWeekday(day: number) {
     const current = [...this.closedWeekdays()];
     const next = current.includes(day)
@@ -81,6 +84,7 @@ export class AdminSiteDashboardPage {
     this.errorMessage.set('');
   }
 
+  // Methode addClosedDate: cree ou ajoute un element selon les regles metier.
   addClosedDate() {
     const date = this.selectedClosedDate().trim();
     if (!date) {
@@ -95,18 +99,21 @@ export class AdminSiteDashboardPage {
     this.errorMessage.set('');
   }
 
+  // Methode removeClosedDate: supprime ou reinitialise les donnees concernees.
   removeClosedDate(date: string) {
     this.slotPolicyService.removeCustomClosedDate(this.siteName(), date);
     this.infoMessage.set('Date de fermeture supprimée.');
     this.errorMessage.set('');
   }
 
+  // Methode cancelReservationByAdmin: verifie une condition metier et renvoie le resultat attendu.
   cancelReservationByAdmin(id: string) {
     this.reservationService.adminCancelReservation(id);
     this.infoMessage.set('Réservation annulée.');
     this.errorMessage.set('');
   }
 
+  // Methode handleScheduleDateChange: gere handle schedule date change de ce bloc.
   handleScheduleDateChange(value: string) {
     this.selectedScheduleDate.set(value || getTodayIso());
   }

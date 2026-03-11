@@ -35,10 +35,12 @@ export class Content {
   errorMessage = signal('');
   currentUser = this.userService.currentUser;
 
+  // Methode constructor: initialise l etat du composant ou du service au chargement.
   constructor() {
     this.refreshSelectedTime();
   }
 
+  // Methode getAvailableTimes: recupere les donnees necessaires a cette fonctionnalite.
   getAvailableTimes(): string[] {
     const clubId = Number(this.selectedClubId);
     if (!clubId || !this.selectedDate) return [];
@@ -49,21 +51,25 @@ export class Content {
     return this.slotPolicyService.getSlotsForSite(club.name, this.selectedDate);
   }
 
+  // Methode handleSiteChange: gere handle site change de ce bloc.
   handleSiteChange() {
     this.errorMessage.set('');
     this.refreshSelectedTime();
   }
 
+  // Methode handleDateChange: gere handle date change de ce bloc.
   handleDateChange() {
     this.errorMessage.set('');
     this.refreshSelectedTime();
   }
 
+  // Methode refreshSelectedTime: gere refresh selected time de ce bloc.
   private refreshSelectedTime() {
     const times = this.getAvailableTimes();
     this.selectedTime = times.length ? times[0] : '';
   }
 
+  // Methode navigateToCourtList: gere la navigation vers l ecran approprie.
   navigateToCourtList() {
     this.errorMessage.set('');
 
@@ -113,6 +119,7 @@ export class Content {
     });
   }
 
+  // Methode navigateToMatch: gere la navigation vers l ecran approprie.
   navigateToMatch(matchId: string) {
     this.router.navigate(['/match', matchId]);
   }
@@ -152,18 +159,22 @@ export class Content {
     return matches.slice(0, 2);
   });
 
+  // Methode getPlayersLabel: recupere les donnees necessaires a cette fonctionnalite.
   getPlayersLabel(match: ReservationModel): string {
     return getPlayersLabel(match.players?.length ?? 0);
   }
 
+  // Methode getRemainingPlaces: recupere les donnees necessaires a cette fonctionnalite.
   getRemainingPlaces(match: ReservationModel): number {
     return getRemainingPlaces(match.players?.length ?? 0);
   }
 
+  // Methode getAmountPerPlayer: recupere les donnees necessaires a cette fonctionnalite.
   getAmountPerPlayer(match: ReservationModel): number {
     return Number((match.total || 0).toFixed(2));
   }
 
+  // Methode reservePreview: gere reserve preview de ce bloc.
   reservePreview(clubId: number) {
     this.errorMessage.set('');
 
@@ -201,6 +212,7 @@ export class Content {
     });
   }
 
+  // Methode canReserveClub: verifie une condition metier et renvoie le resultat attendu.
   canReserveClub(clubId: number): boolean {
     const currentUser = this.currentUser();
     const club = this.clubService.getClubById(clubId);

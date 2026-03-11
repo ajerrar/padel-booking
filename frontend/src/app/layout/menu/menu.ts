@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user-service';
@@ -42,14 +42,17 @@ export class Menu {
     return 'Joueur';
   });
 
+  // Methode toggle: gere toggle de ce bloc.
   toggle() {
     this.mobileOpen = !this.mobileOpen;
   }
 
+  // Methode closeMobile: gere close mobile de ce bloc.
   closeMobile() {
     this.mobileOpen = false;
   }
 
+  // Methode logout: ferme la session utilisateur courante.
   logout() {
     this.userService.logout();
     this.closeMobile();

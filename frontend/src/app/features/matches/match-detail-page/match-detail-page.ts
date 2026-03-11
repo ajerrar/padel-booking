@@ -83,6 +83,7 @@ export class MatchDetailPage {
     return Number((this.matchBaseAmount() + this.outstandingDebt()).toFixed(2));
   });
 
+  // Methode canCurrentUserAccessMatchDate: verifie une condition metier et renvoie le resultat attendu.
   private canCurrentUserAccessMatchDate(): { allowed: boolean; message: string } {
     const user = this.currentUser();
     const match = this.match();
@@ -154,26 +155,32 @@ export class MatchDetailPage {
     return false;
   });
 
+  // Methode getPlayersLabel: recupere les donnees necessaires a cette fonctionnalite.
   getPlayersLabel(): string {
     return getPlayersLabel(this.match()?.players?.length ?? 0);
   }
 
+  // Methode getAmountPerPlayer: recupere les donnees necessaires a cette fonctionnalite.
   getAmountPerPlayer(): number {
     return this.matchBaseAmount();
   }
 
+  // Methode getDisplayedAmountToPay: recupere les donnees necessaires a cette fonctionnalite.
   getDisplayedAmountToPay(): number {
     return this.totalToPayNow();
   }
 
+  // Methode getMatchTotal: recupere les donnees necessaires a cette fonctionnalite.
   getMatchTotal(): number {
     return Number((((this.match()?.total ?? 0) * 4)).toFixed(2));
   }
 
+  // Methode formatDisplayDate: construit la valeur attendue a partir des donnees disponibles.
   formatDisplayDate(date: string | undefined | null): string {
     return formatDisplayDate(date);
   }
 
+  // Methode joinPublicMatch: traite l action utilisateur avec les validations necessaires.
   joinPublicMatch() {
     this.errorMessage.set('');
     this.successMessage.set('');
@@ -216,6 +223,7 @@ export class MatchDetailPage {
     });
   }
 
+  // Methode payPrivateInvitationSeat: gere pay private invitation seat de ce bloc.
   payPrivateInvitationSeat() {
     this.errorMessage.set('');
     this.successMessage.set('');
@@ -258,6 +266,7 @@ export class MatchDetailPage {
     });
   }
 
+  // Methode sendMatchInvitations: gere send match invitations de ce bloc.
   sendMatchInvitations() {
     this.errorMessage.set('');
     this.successMessage.set('');
@@ -319,10 +328,12 @@ export class MatchDetailPage {
     }
   }
 
+  // Methode isValidEmail: verifie une condition metier et renvoie le resultat attendu.
   private isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  // Methode emailExistsInUsers: gere email exists in users de ce bloc.
   private emailExistsInUsers(email: string): boolean {
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
@@ -331,10 +342,12 @@ export class MatchDetailPage {
     );
   }
 
+  // Methode navigateBack: gere la navigation vers l ecran approprie.
   navigateBack() {
     this.router.navigate(['/my-reservations']);
   }
 
+  // Methode isMatchPast: verifie une condition metier et renvoie le resultat attendu.
   isMatchPast(): boolean {
     const match = this.match();
     if (!match) return false;
@@ -342,10 +355,12 @@ export class MatchDetailPage {
     return isMatchPast(match.date, match.time);
   }
 
+  // Methode getEmptySlots: recupere les donnees necessaires a cette fonctionnalite.
   getEmptySlots(): number[] {
     return Array.from({ length: this.remainingPlaces() }, (_, index) => index + 1);
   }
 
+  // Methode getMatchStartTimestamp: recupere les donnees necessaires a cette fonctionnalite.
   getMatchStartTimestamp(): number {
     const match = this.match();
     if (!match) return Number.MAX_SAFE_INTEGER;

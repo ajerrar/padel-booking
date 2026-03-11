@@ -54,15 +54,18 @@ export class PaymentPage {
     cvc: ['', [Validators.required, Validators.pattern(/^\d{3}$/)]],
   });
 
+  // Methode formatDisplayDate: construit la valeur attendue a partir des donnees disponibles.
   formatDisplayDate(date: string | undefined | null): string {
     return formatDisplayDate(date);
   }
 
+  // Methode isFieldInvalid: verifie une condition metier et renvoie le resultat attendu.
   isFieldInvalid(fieldName: 'cardHolder' | 'cardNumber' | 'expirationDate' | 'cvc'): boolean {
     const field = this.paymentForm.controls[fieldName];
     return field.invalid && (field.touched || field.dirty);
   }
 
+  // Methode getFieldError: recupere les donnees necessaires a cette fonctionnalite.
   getFieldError(fieldName: 'cardHolder' | 'cardNumber' | 'expirationDate' | 'cvc'): string {
     const field = this.paymentForm.controls[fieldName];
     if (!field.errors) return '';
@@ -87,6 +90,7 @@ export class PaymentPage {
     return 'Champ invalide.';
   }
 
+  // Methode submitPayment: traite l action utilisateur avec les validations necessaires.
   submitPayment() {
     if (this.paymentForm.invalid) {
       this.paymentForm.markAllAsTouched();
@@ -115,6 +119,7 @@ export class PaymentPage {
     });
   }
 
+  // Methode navigateBack: gere la navigation vers l ecran approprie.
   navigateBack() {
     if (
       (this.paymentMode() === 'JOIN_PUBLIC' || this.paymentMode() === 'JOIN_PRIVATE_INVITE') &&

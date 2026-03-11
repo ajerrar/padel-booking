@@ -1,3 +1,4 @@
+// Methode getRoleLabel: recupere les donnees necessaires a cette fonctionnalite.
 export function getRoleLabel(role: string | undefined | null): string {
   const value = String(role || '').trim();
 

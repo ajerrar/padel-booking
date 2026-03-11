@@ -1,4 +1,4 @@
-﻿export type UserRole = 'Joueur' | 'AdminClub' | 'AdminGlobal';
+export type UserRole = 'Joueur' | 'AdminClub' | 'AdminGlobal';
 
 export interface User {
   id: string;

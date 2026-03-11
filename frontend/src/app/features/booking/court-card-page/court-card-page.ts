@@ -108,6 +108,7 @@ export class CourtCardPage {
       .filter(match => (match.date || '').trim() === date);
   });
 
+  // Methode goToDetail: gere la navigation vers l ecran approprie.
   goToDetail(court: CourtListModel) {
     this.router.navigate(['/terrain', this.clubId(), 'court', court.id], {
       queryParams: {
@@ -117,15 +118,18 @@ export class CourtCardPage {
     });
   }
 
+  // Methode goToMatch: gere la navigation vers l ecran approprie.
   goToMatch(match: ReservationModel) {
     this.router.navigate(['/match', match.id]);
   }
 
+  // Methode playersLabel: gere players label de ce bloc.
   playersLabel(match: ReservationModel): string {
     const count = match.players?.length ?? 0;
     return `${count}/4 joueurs`;
   }
 
+  // Methode getClubImage: recupere les donnees necessaires a cette fonctionnalite.
   getClubImage(): string {
     const images: Record<number, string> = {
       1: '/assets/image/waterloo.png',
@@ -135,6 +139,7 @@ export class CourtCardPage {
     return images[this.clubId()] || '/assets/image/forest.png';
   }
 
+  // Methode goHome: gere la navigation vers l ecran approprie.
   goHome() {
     this.router.navigate(['/home']);
   }

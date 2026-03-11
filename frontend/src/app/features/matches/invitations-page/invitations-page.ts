@@ -30,18 +30,22 @@ export class InvitationsPage {
 
   hasResults = computed(() => this.invitations().length > 0);
 
+  // Methode getPlayersLabel: recupere les donnees necessaires a cette fonctionnalite.
   getPlayersLabel(reservation: ReservationModel): string {
     return getPlayersLabel(reservation.players?.length ?? 0);
   }
 
+  // Methode getAmountPerPlayer: recupere les donnees necessaires a cette fonctionnalite.
   getAmountPerPlayer(reservation: ReservationModel): number {
     return Number((reservation.total || 0).toFixed(2));
   }
 
+  // Methode getMatchTotal: recupere les donnees necessaires a cette fonctionnalite.
   getMatchTotal(reservation: ReservationModel): number {
     return Number((((reservation.total || 0) * 4)).toFixed(2));
   }
 
+  // Methode getInvitationStatus: recupere les donnees necessaires a cette fonctionnalite.
   getInvitationStatus(reservation: ReservationModel): 'PENDING' | 'ACCEPTED' {
     const user = this.currentUser();
     if (!user) return 'PENDING';
@@ -49,10 +53,12 @@ export class InvitationsPage {
     return this.reservationService.getInvitationStatus(reservation, user.email, user.matricule);
   }
 
+  // Methode navigateToMatchDetail: gere la navigation vers l ecran approprie.
   navigateToMatchDetail(reservation: ReservationModel) {
     this.router.navigate(['/match', reservation.id]);
   }
 
+  // Methode navigateToProfile: gere la navigation vers l ecran approprie.
   navigateToProfile() {
     this.router.navigate(['/user']);
   }

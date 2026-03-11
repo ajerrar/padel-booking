@@ -62,6 +62,7 @@ export class AdminGlobalDashboardPage {
     return this.reservationService.listReservedSlotsBySiteAndDate(site, date);
   });
 
+  // Methode constructor: initialise l etat du composant ou du service au chargement.
   constructor() {
     const firstSite = this.slotPolicyService.getAllSites()[0] ?? '';
     this.selectedSiteName.set(firstSite);
@@ -72,15 +73,18 @@ export class AdminGlobalDashboardPage {
     return values.length ? Math.max(...values) : 1;
   });
 
+  // Methode getRevenueWidth: recupere les donnees necessaires a cette fonctionnalite.
   getRevenueWidth(value: number): number {
     const max = this.maxSiteRevenue() || 1;
     return Math.max(10, Math.round((value / max) * 100));
   }
 
+  // Methode isWeekdayClosed: verifie une condition metier et renvoie le resultat attendu.
   isWeekdayClosed(day: number): boolean {
     return this.closedWeekdays().includes(day);
   }
 
+  // Methode toggleClosedWeekday: gere toggle closed weekday de ce bloc.
   toggleClosedWeekday(day: number) {
     const site = this.selectedSiteName().trim();
     if (!site) {
@@ -99,6 +103,7 @@ export class AdminGlobalDashboardPage {
     this.errorMessage.set('');
   }
 
+  // Methode addClosedDate: cree ou ajoute un element selon les regles metier.
   addClosedDate() {
     const site = this.selectedSiteName().trim();
     const date = this.selectedClosedDate().trim();
@@ -121,6 +126,7 @@ export class AdminGlobalDashboardPage {
     this.errorMessage.set('');
   }
 
+  // Methode removeClosedDate: supprime ou reinitialise les donnees concernees.
   removeClosedDate(date: string) {
     const site = this.selectedSiteName().trim();
     if (!site) {
@@ -134,16 +140,19 @@ export class AdminGlobalDashboardPage {
     this.errorMessage.set('');
   }
 
+  // Methode handleSiteChange: gere handle site change de ce bloc.
   handleSiteChange(value: string) {
     this.selectedSiteName.set(value || '');
     this.infoMessage.set('');
     this.errorMessage.set('');
   }
 
+  // Methode handleScheduleDateChange: gere handle schedule date change de ce bloc.
   handleScheduleDateChange(value: string) {
     this.selectedScheduleDate.set(value || getTodayIso());
   }
 
+  // Methode cancelReservationByAdmin: verifie une condition metier et renvoie le resultat attendu.
   cancelReservationByAdmin(id: string) {
     this.reservationService.adminCancelReservation(id);
     this.infoMessage.set('Réservation annulée.');

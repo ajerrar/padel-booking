@@ -67,18 +67,22 @@ export class AdminMembersPage {
     this.allUsers().filter(user => String(user.role || '').trim() === 'AdminClub').length
   );
 
+  // Methode handleSearchInput: gere handle search input de ce bloc.
   handleSearchInput(value: string) {
     this.searchQuery.set(value || '');
   }
 
+  // Methode handleRoleFilterChange: gere handle role filter change de ce bloc.
   handleRoleFilterChange(value: string) {
     this.selectedRoleFilter.set((value || 'ALL') as RoleFilter);
   }
 
+  // Methode getRoleLabel: recupere les donnees necessaires a cette fonctionnalite.
   getRoleLabel(role: string): string {
     return getRoleLabel(role);
   }
 
+  // Methode getRoleBadgeClass: recupere les donnees necessaires a cette fonctionnalite.
   getRoleBadgeClass(role: string): string {
     const r = String(role || '').trim();
 

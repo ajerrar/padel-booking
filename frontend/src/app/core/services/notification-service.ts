@@ -31,10 +31,12 @@ export class NotificationService {
   notifications = signal<AppNotification[]>(this.readNotifications());
   toast = signal<AppNotification | null>(null);
 
+  // Methode list: recupere les donnees necessaires a cette fonctionnalite.
   list(): AppNotification[] {
     return this.notifications();
   }
 
+  // Methode add: cree ou ajoute un element selon les regles metier.
   add(data: Omit<AppNotification, 'id' | 'createdAt' | 'read'>): void {
     const notification: AppNotification = {
       ...data,
@@ -50,6 +52,7 @@ export class NotificationService {
     this.showToast(notification);
   }
 
+  // Methode unreadCountForUser: gere unread count for user de ce bloc.
   unreadCountForUser(email?: string, matricule?: string): number {
     const normalizedEmail = this.normalizeEmail(email);
     const normalizedMatricule = this.normalizeMatricule(matricule);
@@ -69,6 +72,7 @@ export class NotificationService {
     }).length;
   }
 
+  // Methode listForUser: recupere les donnees necessaires a cette fonctionnalite.
   listForUser(email?: string, matricule?: string): AppNotification[] {
     const normalizedEmail = this.normalizeEmail(email);
     const normalizedMatricule = this.normalizeMatricule(matricule);
@@ -86,6 +90,7 @@ export class NotificationService {
     });
   }
 
+  // Methode markAllAsReadForUser: gere mark all as read for user de ce bloc.
   markAllAsReadForUser(email?: string, matricule?: string): void {
     const normalizedEmail = this.normalizeEmail(email);
     const normalizedMatricule = this.normalizeMatricule(matricule);
@@ -110,6 +115,7 @@ export class NotificationService {
     this.writeNotifications(updatedNotifications);
   }
 
+  // Methode remove: supprime ou reinitialise les donnees concernees.
   remove(id: string): void {
     const updatedNotifications = this.notifications().filter(
       notification => notification.id !== id
@@ -119,14 +125,17 @@ export class NotificationService {
     this.writeNotifications(updatedNotifications);
   }
 
+  // Methode clearToast: supprime ou reinitialise les donnees concernees.
   clearToast(): void {
     this.toast.set(null);
   }
 
+  // Methode showToast: gere show toast de ce bloc.
   private showToast(notification: AppNotification): void {
     this.toast.set(notification);
 
     if (this.toastTimeout) {
+      // Methode clearTimeout: supprime ou reinitialise les donnees concernees.
       clearTimeout(this.toastTimeout);
     }
 
@@ -135,6 +144,7 @@ export class NotificationService {
     }, 4000);
   }
 
+  // Methode readNotifications: recupere les donnees necessaires a cette fonctionnalite.
   private readNotifications(): AppNotification[] {
     try {
       const raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
@@ -161,18 +171,22 @@ export class NotificationService {
     }
   }
 
+  // Methode writeNotifications: met a jour les donnees et maintient la coherence de l etat.
   private writeNotifications(notifications: AppNotification[]): void {
     localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
   }
 
+  // Methode normalizeEmail: normalise l email (trim + minuscule) pour des comparaisons fiables.
   private normalizeEmail(value?: string): string {
     return String(value || '').trim().toLowerCase();
   }
 
+  // Methode normalizeMatricule: normalise le matricule (trim) pour eviter les ecarts de saisie.
   private normalizeMatricule(value?: string): string {
     return String(value || '').trim();
   }
 
+  // Methode generateId: construit la valeur attendue a partir des donnees disponibles.
   private generateId(): string {
     return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
   }

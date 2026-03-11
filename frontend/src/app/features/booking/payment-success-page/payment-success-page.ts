@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReservationService } from '../../../core/services/reservation-service';
@@ -47,6 +47,7 @@ export class PaymentSuccessPage {
     return `PADEL-${time.replace(':', '')}-${Math.floor(Math.random() * 9000 + 1000)}`;
   });
 
+  // Methode constructor: initialise l etat du composant ou du service au chargement.
   constructor() {
     this.route.queryParamMap.subscribe(params => {
       this.clubName.set(params.get('clubName') ?? '—');
@@ -82,6 +83,7 @@ export class PaymentSuccessPage {
     });
   }
 
+  // Methode processReservationOnce: gere process reservation once de ce bloc.
   private processReservationOnce() {
     if (this.hasProcessedReservation()) return;
 
@@ -158,18 +160,22 @@ export class PaymentSuccessPage {
     }
   }
 
+  // Methode formatDisplayDate: construit la valeur attendue a partir des donnees disponibles.
   formatDisplayDate(date: string | undefined | null): string {
     return formatDisplayDate(date);
   }
 
+  // Methode navigateToHome: gere la navigation vers l ecran approprie.
   navigateToHome() {
     this.router.navigate(['/home']);
   }
 
+  // Methode navigateToReservations: gere la navigation vers l ecran approprie.
   navigateToReservations() {
     this.router.navigate(['/my-reservations']);
   }
 
+  // Methode navigateToClub: gere la navigation vers l ecran approprie.
   navigateToClub() {
     this.router.navigate(['/home']);
   }

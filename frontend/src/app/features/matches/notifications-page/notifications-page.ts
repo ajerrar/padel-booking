@@ -28,6 +28,7 @@ export class NotificationsPage {
 
   hasResults = computed(() => this.notifications().length > 0);
 
+  // Methode constructor: initialise l etat du composant ou du service au chargement.
   constructor() {
     const user = this.currentUser();
     if (user) {
@@ -35,15 +36,18 @@ export class NotificationsPage {
     }
   }
 
+  // Methode navigateToMatchDetail: gere la navigation vers l ecran approprie.
   navigateToMatchDetail(matchId?: string) {
     if (!matchId) return;
     this.router.navigate(['/match', matchId]);
   }
 
+  // Methode navigateToProfile: gere la navigation vers l ecran approprie.
   navigateToProfile() {
     this.router.navigate(['/user']);
   }
 
+  // Methode removeNotification: supprime ou reinitialise les donnees concernees.
   removeNotification(id: string) {
     this.notificationService.remove(id);
   }

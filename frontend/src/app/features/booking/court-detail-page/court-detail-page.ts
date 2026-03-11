@@ -106,10 +106,12 @@ export class CourtDetailPage {
     }));
   });
 
+  // Methode setMatchVisibility: met a jour les donnees et maintient la coherence de l etat.
   setMatchVisibility(value: 'PUBLIC' | 'PRIVATE') {
     this.matchVisibility.set(value);
   }
 
+  // Methode backToCourts: gere back to courts de ce bloc.
   backToCourts() {
     this.router.navigate(['/terrain', this.clubId()], {
       queryParams: {
@@ -118,6 +120,7 @@ export class CourtDetailPage {
     });
   }
 
+  // Methode onDateChange: gere on date change de ce bloc.
   onDateChange(valueOrEvent: string | Event) {
     this.errorMessage.set('');
 
@@ -131,12 +134,14 @@ export class CourtDetailPage {
     this.selectedSlot.set(null);
   }
 
+  // Methode select: gere select de ce bloc.
   select(slot: SlotItem) {
     this.errorMessage.set('');
     if (!slot.isAvailable) return;
     this.selectedSlot.set(slot);
   }
 
+  // Methode confirm: traite l action utilisateur avec les validations necessaires.
   confirm() {
     this.errorMessage.set('');
 
@@ -153,14 +158,17 @@ export class CourtDetailPage {
     this.showConfirmModal.set(true);
   }
 
+  // Methode closeConfirm: gere close confirm de ce bloc.
   closeConfirm() {
     this.showConfirmModal.set(false);
   }
 
+  // Methode nextHourLabel: gere next hour label de ce bloc.
   nextHourLabel(time: string): string {
     return this.slotPolicyService.getEndTime(this.clubName(), time);
   }
 
+  // Methode validateReservation: traite l action utilisateur avec les validations necessaires.
   validateReservation() {
     this.errorMessage.set('');
 
@@ -205,6 +213,7 @@ export class CourtDetailPage {
     });
   }
 
+  // Methode goHome: gere la navigation vers l ecran approprie.
   goHome() {
     this.router.navigate(['/home']);
   }

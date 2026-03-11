@@ -39,14 +39,17 @@ export class CourtService {
     ],
   };
 
+  // Methode getCourtsByClubId: recupere les donnees necessaires a cette fonctionnalite.
   getCourtsByClubId(clubId: number): CourtListModel[] {
     return this.courtsByClubId[clubId] ?? [];
   }
 
+  // Methode getCourts: recupere les donnees necessaires a cette fonctionnalite.
   getCourts(): CourtListModel[] {
     return Object.values(this.courtsByClubId).flat();
   }
 
+  // Methode getCourtById: recupere les donnees necessaires a cette fonctionnalite.
   getCourtById(clubId: number, courtId: number): CourtListModel | undefined {
     const courts = this.courtsByClubId[clubId] ?? [];
     return courts.find(court => court.id === courtId);

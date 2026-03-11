@@ -130,22 +130,27 @@ export class MyReservationsPage {
 
   hasResults = computed(() => this.reservations().length > 0);
 
+  // Methode setSelectedTab: met a jour les donnees et maintient la coherence de l etat.
   setSelectedTab(tab: ReservationTab) {
     this.selectedTab.set(tab);
   }
 
+  // Methode handleSearchInput: gere handle search input de ce bloc.
   handleSearchInput(event: Event) {
     this.searchQuery.set((event.target as HTMLInputElement).value ?? '');
   }
 
+  // Methode handleSortChange: gere handle sort change de ce bloc.
   handleSortChange(event: Event) {
     this.selectedSort.set((event.target as HTMLSelectElement).value as ReservationSort);
   }
 
+  // Methode handleFilterChange: gere handle filter change de ce bloc.
   handleFilterChange(event: Event) {
     this.selectedFilter.set((event.target as HTMLSelectElement).value as ReservationFilter);
   }
 
+  // Methode resetFilters: supprime ou reinitialise les donnees concernees.
   resetFilters() {
     this.searchQuery.set('');
     this.selectedSort.set('RECENT');
@@ -153,34 +158,43 @@ export class MyReservationsPage {
     this.selectedTab.set('ALL');
   }
 
+  // Methode cancelReservation: verifie une condition metier et renvoie le resultat attendu.
   cancelReservation(id: string) {
     this.reservationService.cancel(id);
     this.successMessage.set('Réservation annulée.');
     this.errorMessage.set('');
   }
 
+  // Methode downloadQrCode: gere download qr code de ce bloc.
   downloadQrCode(_id: string) {
+    // Methode alert: gere alert de ce bloc.
     alert('QR demo (à brancher backend plus tard).');
   }
 
+  // Methode exportPdf: gere export pdf de ce bloc.
   exportPdf() {
+    // Methode alert: gere alert de ce bloc.
     alert('Export PDF demo (à faire plus tard).');
   }
 
+  // Methode navigateToHome: gere la navigation vers l ecran approprie.
   navigateToHome() {
     this.router.navigate(['/home']);
   }
 
+  // Methode navigateToMatchDetail: gere la navigation vers l ecran approprie.
   navigateToMatchDetail(reservation: ReservationModel) {
     this.router.navigate(['/match', reservation.id]);
   }
 
+  // Methode navigateToNewReservation: gere la navigation vers l ecran approprie.
   navigateToNewReservation(reservation: ReservationModel) {
     this.router.navigate(['/home'], {
       queryParams: { clubName: reservation.clubName },
     });
   }
 
+  // Methode isOrganizer: verifie une condition metier et renvoie le resultat attendu.
   isOrganizer(reservation: ReservationModel): boolean {
     const user = this.currentUser();
     if (!user) return false;
@@ -188,12 +202,14 @@ export class MyReservationsPage {
     return (reservation.organizerMatricule || '').trim() === (user.matricule || '').trim();
   }
 
+  // Methode canInvitePlayers: verifie une condition metier et renvoie le resultat attendu.
   canInvitePlayers(reservation: ReservationModel): boolean {
     return reservation.status === 'CONFIRMED'
       && reservation.visibility === 'PRIVATE'
       && this.isOrganizer(reservation);
   }
 
+  // Methode openInviteModal: gere open invite modal de ce bloc.
   openInviteModal(reservation: ReservationModel) {
     this.errorMessage.set('');
     this.successMessage.set('');
@@ -204,10 +220,12 @@ export class MyReservationsPage {
     this.isInviteModalOpen.set(true);
   }
 
+  // Methode closeInviteModal: gere close invite modal de ce bloc.
   closeInviteModal() {
     this.isInviteModalOpen.set(false);
   }
 
+  // Methode sendMatchInvitations: gere send match invitations de ce bloc.
   sendMatchInvitations() {
     this.errorMessage.set('');
     this.successMessage.set('');
@@ -270,10 +288,12 @@ export class MyReservationsPage {
     }
   }
 
+  // Methode isValidEmail: verifie une condition metier et renvoie le resultat attendu.
   private isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  // Methode emailExistsInUsers: gere email exists in users de ce bloc.
   private emailExistsInUsers(email: string): boolean {
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
@@ -282,14 +302,17 @@ export class MyReservationsPage {
     );
   }
 
+  // Methode getPlayersLabel: recupere les donnees necessaires a cette fonctionnalite.
   getPlayersLabel(reservation: ReservationModel): string {
     return getPlayersLabel(reservation.players?.length ?? 0);
   }
 
+  // Methode getVisibilityLabel: recupere les donnees necessaires a cette fonctionnalite.
   getVisibilityLabel(reservation: ReservationModel): string {
     return reservation.visibility === 'PRIVATE' ? 'Privé' : 'Public';
   }
 
+  // Methode formatDisplayDate: construit la valeur attendue a partir des donnees disponibles.
   formatDisplayDate(date: string | undefined | null): string {
     if (!date) return '—';
     const [year, month, day] = date.split('-');
@@ -297,10 +320,12 @@ export class MyReservationsPage {
     return `${day}/${month}/${year}`;
   }
 
+  // Methode getAmountPerPlayer: recupere les donnees necessaires a cette fonctionnalite.
   getAmountPerPlayer(reservation: ReservationModel): number {
     return Number((reservation.total || 0).toFixed(2));
   }
 
+  // Methode isReservationPast: verifie une condition metier et renvoie le resultat attendu.
   isReservationPast(reservation: ReservationModel): boolean {
     return isMatchPast(reservation.date, reservation.time);
   }

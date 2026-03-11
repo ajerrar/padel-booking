@@ -20,10 +20,12 @@ export class App {
   private notificationService = inject(NotificationService);
   toast = this.notificationService.toast;
 
+  // Methode closeToast: gere close toast de ce bloc.
   closeToast() {
     this.notificationService.clearToast();
   }
 
+  // Methode constructor: initialise l etat du composant ou du service au chargement.
   constructor() {
     // ✅ seed admins une seule fois
     this.userService.seedAdmins();

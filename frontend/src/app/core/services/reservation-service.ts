@@ -5,6 +5,7 @@ import { NotificationService } from './notification-service';
 
 const KEY = 'pb_reservations';
 
+// Methode toVisibility: gere to visibility de ce bloc.
 function toVisibility(v: any): MatchVisibility {
   const s = String(v ?? '').toUpperCase();
   return s === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
@@ -34,6 +35,7 @@ export class ReservationService {
     return normalized.data;
   }
 
+  // Methode listByUser: recupere les donnees necessaires a cette fonctionnalite.
   listByUser(matricule: string): ReservationModel[] {
     const m = (matricule || '').trim();
     return this.list().filter(r =>
@@ -42,6 +44,7 @@ export class ReservationService {
     );
   }
 
+  // Methode listInvitationsByEmail: recupere les donnees necessaires a cette fonctionnalite.
   listInvitationsByEmail(email: string): ReservationModel[] {
     const e = (email || '').trim().toLowerCase();
     if (!e) return [];
@@ -54,6 +57,7 @@ export class ReservationService {
     );
   }
 
+  // Methode listInvitationsForUser: recupere les donnees necessaires a cette fonctionnalite.
   listInvitationsForUser(email: string, matricule: string): ReservationModel[] {
     const e = (email || '').trim().toLowerCase();
     const m = (matricule || '').trim();
@@ -83,6 +87,7 @@ export class ReservationService {
     });
   }
 
+  // Methode getInvitationStatus: recupere les donnees necessaires a cette fonctionnalite.
   getInvitationStatus(match: ReservationModel, email: string, matricule: string): 'PENDING' | 'ACCEPTED' {
     const e = (email || '').trim().toLowerCase();
     const m = (matricule || '').trim();
@@ -122,6 +127,7 @@ export class ReservationService {
     );
   }
 
+  // Methode canUserReserveClub: verifie une condition metier et renvoie le resultat attendu.
   canUserReserveClub(params: {
     matricule: string;
     userSiteName?: string;
@@ -321,6 +327,7 @@ export class ReservationService {
     return item;
   }
 
+  // Methode cancel: verifie une condition metier et renvoie le resultat attendu.
   cancel(id: string): void {
     const all = [...this.reservations()];
     const idx = all.findIndex(r => r.id === id);
@@ -335,6 +342,7 @@ export class ReservationService {
     }
   }
 
+  // Methode adminCancelReservation: gere admin cancel reservation de ce bloc.
   adminCancelReservation(id: string): void {
     const all = [...this.reservations()];
     const idx = all.findIndex(r => r.id === id);
@@ -422,6 +430,7 @@ export class ReservationService {
     this.write(all);
   }
 
+  // Methode acceptPrivateInvitationAndMarkPaid: traite l action utilisateur avec les validations necessaires.
   acceptPrivateInvitationAndMarkPaid(matchId: string, email: string, matricule: string): void {
     const e = (email || '').trim().toLowerCase();
     const m = (matricule || '').trim();
@@ -556,6 +565,7 @@ export class ReservationService {
     this.write(all);
   }
 
+  // Methode markPaid: gere mark paid de ce bloc.
   markPaid(matchId: string, matricule: string): void {
     const m = (matricule || '').trim();
     if (!m) throw new Error('Matricule manquant.');
@@ -577,6 +587,7 @@ export class ReservationService {
     this.write(all);
   }
 
+  // Methode joinAndMarkPaid: traite l action utilisateur avec les validations necessaires.
   joinAndMarkPaid(matchId: string, matricule: string): void {
     const m = (matricule || '').trim();
     if (!m) throw new Error('Matricule manquant.');
@@ -646,6 +657,7 @@ export class ReservationService {
       .reduce((sum, match) => sum + (Number(match.organizerDebtAmount) || 0), 0);
   }
 
+  // Methode clearOrganizerDebtForMatch: supprime ou reinitialise les donnees concernees.
   clearOrganizerDebtForMatch(matchId: string): void {
     const all = [...this.reservations()];
     const idx = all.findIndex(r => r.id === matchId);
@@ -674,6 +686,7 @@ export class ReservationService {
     );
   }
 
+  // Methode listBySiteAndDate: recupere les donnees necessaires a cette fonctionnalite.
   listBySiteAndDate(siteName: string, date: string): ReservationModel[] {
     const site = (siteName || '').trim().toLowerCase();
     const d = (date || '').trim();
@@ -685,6 +698,7 @@ export class ReservationService {
     );
   }
 
+  // Methode listReservedSlotsBySiteAndDate: recupere les donnees necessaires a cette fonctionnalite.
   listReservedSlotsBySiteAndDate(siteName: string, date: string): Array<{
     reservationId: string;
     courtName: string;
@@ -753,6 +767,7 @@ export class ReservationService {
     };
   }
 
+  // Methode getGlobalStatsDetailed: recupere les donnees necessaires a cette fonctionnalite.
   getGlobalStatsDetailed() {
     const all = this.list().filter(r => r.status === 'CONFIRMED');
 
@@ -813,6 +828,7 @@ export class ReservationService {
     };
   }
 
+  // Methode getSiteStats: recupere les donnees necessaires a cette fonctionnalite.
   getSiteStats(siteName: string) {
     const target = (siteName || '').trim().toLowerCase();
 
@@ -931,6 +947,7 @@ export class ReservationService {
     return { data: updated, changed };
   }
 
+  // Methode getMatchStartDateTime: recupere les donnees necessaires a cette fonctionnalite.
   private getMatchStartDateTime(r: ReservationModel): Date | null {
     const date = (r.date || '').trim();
     const startTime = this.extractStartHHmm(r.time);
@@ -942,6 +959,7 @@ export class ReservationService {
     return isNaN(d.getTime()) ? null : d;
   }
 
+  // Methode extractStartHHmm: construit la valeur attendue a partir des donnees disponibles.
   private extractStartHHmm(time: string): string {
     const s = (time || '').trim();
     const m = s.match(/(\d{2}:\d{2})/);
@@ -990,6 +1008,7 @@ export class ReservationService {
     }
   }
 
+  // Methode write: met a jour les donnees et maintient la coherence de l etat.
   private write(all: ReservationModel[]) {
     localStorage.setItem(KEY, JSON.stringify(all));
     this.reservations.set(all);

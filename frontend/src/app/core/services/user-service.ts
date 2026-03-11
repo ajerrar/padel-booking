@@ -1,4 +1,4 @@
-﻿import { Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 const CURRENT_USER_STORAGE_KEY = 'pb_current_user';
 const USERS_STORAGE_KEY = 'pb_users';
@@ -24,6 +24,7 @@ export interface UserModel {
 export class UserService {
   currentUser = signal<UserModel | null>(this.readCurrentUser());
 
+  // Methode register: cree ou ajoute un element selon les regles metier.
   register(
     payload: Omit<UserModel, 'id' | 'matricule' | 'role'> & { memberType: MemberType }
   ): UserModel {
@@ -68,6 +69,7 @@ export class UserService {
     return user;
   }
 
+  // Methode loginByEmail: authentifie l utilisateur et met a jour la session.
   loginByEmail(email: string): UserModel | null {
     const normalizedEmail = String(email || '').trim().toLowerCase();
     if (!normalizedEmail) return null;
@@ -81,6 +83,7 @@ export class UserService {
     this.persistCurrentUser(user);
     return user;
   }
+  // Methode loginByMatricule: authentifie l utilisateur et met a jour la session.
   loginByMatricule(matricule: string): UserModel | null {
     const normalizedMatricule = String(matricule || '').trim().toUpperCase();
     if (!normalizedMatricule) return null;
@@ -95,11 +98,13 @@ export class UserService {
     return user;
   }
 
+  // Methode logout: ferme la session utilisateur courante.
   logout(): void {
     localStorage.removeItem(CURRENT_USER_STORAGE_KEY);
     this.currentUser.set(null);
   }
 
+  // Methode seedAdmins: cree ou ajoute un element selon les regles metier.
   seedAdmins(): void {
     const users = this.listUsers();
 
@@ -161,6 +166,7 @@ export class UserService {
     }
   }
 
+  // Methode updateCurrent: met a jour les donnees et maintient la coherence de l etat.
   updateCurrent(patch: Partial<UserModel>): void {
     const user = this.currentUser();
     if (!user) return;
@@ -179,6 +185,7 @@ export class UserService {
     this.persistCurrentUser(updatedUser);
   }
 
+  // Methode listUsers: recupere les donnees necessaires a cette fonctionnalite.
   listUsers(): UserModel[] {
     try {
       const raw = localStorage.getItem(USERS_STORAGE_KEY);
@@ -202,6 +209,7 @@ export class UserService {
     }
   }
 
+  // Methode getUserByMatricule: recupere les donnees necessaires a cette fonctionnalite.
   getUserByMatricule(matricule: string): UserModel | undefined {
     const normalizedMatricule = String(matricule || '').trim();
     if (!normalizedMatricule) return undefined;
@@ -211,6 +219,7 @@ export class UserService {
     );
   }
 
+  // Methode getMemberTypeFromMatricule: recupere les donnees necessaires a cette fonctionnalite.
   getMemberTypeFromMatricule(matricule: string): MemberType {
     const value = String(matricule || '').trim().toUpperCase();
 
@@ -219,6 +228,7 @@ export class UserService {
     return 'FREE';
   }
 
+  // Methode blockBookingForDays: gere block booking for days de ce bloc.
   blockBookingForDays(matricule: string, days: number): void {
     const normalizedMatricule = String(matricule || '').trim();
     if (!normalizedMatricule || days <= 0) return;
@@ -243,6 +253,7 @@ export class UserService {
     }
   }
 
+  // Methode clearBookingBlock: supprime ou reinitialise les donnees concernees.
   clearBookingBlock(matricule: string): void {
     const normalizedMatricule = String(matricule || '').trim();
     if (!normalizedMatricule) return;
@@ -264,6 +275,7 @@ export class UserService {
     }
   }
 
+  // Methode isBookingBlocked: verifie une condition metier et renvoie le resultat attendu.
   isBookingBlocked(matricule: string): boolean {
     const user = this.getUserByMatricule(matricule);
     if (!user?.bookingBlockedUntil) return false;
@@ -271,11 +283,13 @@ export class UserService {
     return new Date(user.bookingBlockedUntil).getTime() > Date.now();
   }
 
+  // Methode getBookingBlockedUntil: recupere les donnees necessaires a cette fonctionnalite.
   getBookingBlockedUntil(matricule: string): string | null {
     const user = this.getUserByMatricule(matricule);
     return user?.bookingBlockedUntil ?? null;
   }
 
+  // Methode saveUser: met a jour les donnees et maintient la coherence de l etat.
   private saveUser(user: UserModel): void {
     const users = this.listUsers();
     const index = users.findIndex(
@@ -291,11 +305,13 @@ export class UserService {
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
   }
 
+  // Methode persistCurrentUser: met a jour les donnees et maintient la coherence de l etat.
   private persistCurrentUser(user: UserModel): void {
     localStorage.setItem(CURRENT_USER_STORAGE_KEY, JSON.stringify(user));
     this.currentUser.set(user);
   }
 
+  // Methode readCurrentUser: recupere les donnees necessaires a cette fonctionnalite.
   private readCurrentUser(): UserModel | null {
     try {
       const raw = localStorage.getItem(CURRENT_USER_STORAGE_KEY);
@@ -305,6 +321,7 @@ export class UserService {
     }
   }
 
+  // Methode generateMatricule: construit la valeur attendue a partir des donnees disponibles.
   private generateMatricule(memberType: MemberType): string {
     const prefix =
       memberType === 'GLOBAL'
@@ -323,6 +340,7 @@ export class UserService {
     return `${prefix}${digits}`;
   }
 
+  // Methode generateId: construit la valeur attendue a partir des donnees disponibles.
   private generateId(): string {
     return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
   }

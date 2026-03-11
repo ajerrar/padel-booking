@@ -63,23 +63,27 @@ export class SlotPolicyService {
     { start: '2026-12-21', end: '2027-01-03' },
   ];
 
+  // Methode getAllSites: recupere les donnees necessaires a cette fonctionnalite.
   getAllSites(): string[] {
     this.refreshTick();
     return Object.keys(this.policies).sort((a, b) => a.localeCompare(b));
   }
 
+  // Methode getPolicy: recupere les donnees necessaires a cette fonctionnalite.
   getPolicy(siteName: string): SitePolicy | null {
     this.refreshTick();
     const key = (siteName || '').trim();
     return this.policies[key] ?? null;
   }
 
+  // Methode getClosedWeekdays: recupere les donnees necessaires a cette fonctionnalite.
   getClosedWeekdays(siteName: string): number[] {
     this.refreshTick();
     const policy = this.getPolicy(siteName);
     return policy ? [...policy.closedWeekdays] : [];
   }
 
+  // Methode updateClosedWeekdays: met a jour les donnees et maintient la coherence de l etat.
   updateClosedWeekdays(siteName: string, weekdays: number[]): void {
     const policy = this.getPolicy(siteName);
     if (!policy) return;
@@ -94,12 +98,14 @@ export class SlotPolicyService {
     this.touch();
   }
 
+  // Methode getCustomClosedDates: recupere les donnees necessaires a cette fonctionnalite.
   getCustomClosedDates(siteName: string): string[] {
     this.refreshTick();
     const map = this.readCustomClosures();
     return Array.isArray(map[siteName]) ? [...map[siteName]] : [];
   }
 
+  // Methode addCustomClosedDate: cree ou ajoute un element selon les regles metier.
   addCustomClosedDate(siteName: string, dateISO: string): void {
     const site = (siteName || '').trim();
     const date = (dateISO || '').trim();
@@ -117,6 +123,7 @@ export class SlotPolicyService {
     }
   }
 
+  // Methode removeCustomClosedDate: supprime ou reinitialise les donnees concernees.
   removeCustomClosedDate(siteName: string, dateISO: string): void {
     const site = (siteName || '').trim();
     const date = (dateISO || '').trim();
@@ -129,6 +136,7 @@ export class SlotPolicyService {
     this.touch();
   }
 
+  // Methode isGloballyClosed: verifie une condition metier et renvoie le resultat attendu.
   isGloballyClosed(dateISO: string): boolean {
     this.refreshTick();
     const d = (dateISO || '').trim();
@@ -138,6 +146,7 @@ export class SlotPolicyService {
     return this.isInWinterBreak(d);
   }
 
+  // Methode isSiteClosed: verifie une condition metier et renvoie le resultat attendu.
   isSiteClosed(siteName: string, dateISO: string): boolean {
     this.refreshTick();
     const policy = this.getPolicy(siteName);
@@ -153,11 +162,13 @@ export class SlotPolicyService {
     return policy.closedWeekdays.includes(weekday);
   }
 
+  // Methode isClosed: verifie une condition metier et renvoie le resultat attendu.
   isClosed(siteName: string, dateISO: string): boolean {
     this.refreshTick();
     return this.isGloballyClosed(dateISO) || this.isSiteClosed(siteName, dateISO);
   }
 
+  // Methode getSlotsForSite: recupere les donnees necessaires a cette fonctionnalite.
   getSlotsForSite(siteName: string, dateISO: string): string[] {
     this.refreshTick();
     const policy = this.getPolicy(siteName);
@@ -180,6 +191,7 @@ export class SlotPolicyService {
     return slots;
   }
 
+  // Methode getEndTime: recupere les donnees necessaires a cette fonctionnalite.
   getEndTime(siteName: string, startHHmm: string): string {
     this.refreshTick();
     const policy = this.getPolicy(siteName);
@@ -188,6 +200,7 @@ export class SlotPolicyService {
     return this.toHHmm(start + policy.slotMinutes);
   }
 
+  // Methode getClosureReason: recupere les donnees necessaires a cette fonctionnalite.
   getClosureReason(siteName: string, dateISO: string): string | null {
     this.refreshTick();
     const d = (dateISO || '').trim();
@@ -208,10 +221,12 @@ export class SlotPolicyService {
     return null;
   }
 
+  // Methode touch: gere touch de ce bloc.
   private touch(): void {
     this.refreshTick.update(v => v + 1);
   }
 
+  // Methode readCustomClosures: recupere les donnees necessaires a cette fonctionnalite.
   private readCustomClosures(): Record<string, string[]> {
     try {
       const raw = localStorage.getItem(CUSTOM_SITE_CLOSURES_KEY);
@@ -222,10 +237,12 @@ export class SlotPolicyService {
     }
   }
 
+  // Methode writeCustomClosures: met a jour les donnees et maintient la coherence de l etat.
   private writeCustomClosures(data: Record<string, string[]>): void {
     localStorage.setItem(CUSTOM_SITE_CLOSURES_KEY, JSON.stringify(data));
   }
 
+  // Methode isInWinterBreak: verifie une condition metier et renvoie le resultat attendu.
   private isInWinterBreak(dateISO: string): boolean {
     const current = new Date(`${dateISO}T00:00:00`);
     if (isNaN(current.getTime())) return false;
@@ -237,16 +254,19 @@ export class SlotPolicyService {
     });
   }
 
+  // Methode getWeekday: recupere les donnees necessaires a cette fonctionnalite.
   private getWeekday(dateISO: string): number {
     const d = new Date(`${dateISO}T00:00:00`);
     return isNaN(d.getTime()) ? -1 : d.getDay();
   }
 
+  // Methode toMinutes: gere to minutes de ce bloc.
   private toMinutes(hhmm: string): number {
     const [h, m] = hhmm.split(':').map(Number);
     return h * 60 + m;
   }
 
+  // Methode toHHmm: gere to hhmm de ce bloc.
   private toHHmm(totalMinutes: number): string {
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;

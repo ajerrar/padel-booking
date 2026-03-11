@@ -21,6 +21,7 @@ export class LoginPage {
     matricule: ['', [Validators.required, Validators.minLength(2)]],
   });
 
+  // Methode submitLogin: traite l action utilisateur avec les validations necessaires.
   submitLogin() {
     this.errorMessage.set('');
 

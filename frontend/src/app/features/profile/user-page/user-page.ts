@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { UserService } from '../../../core/services/user-service';
@@ -22,6 +22,7 @@ export class ProfilePage {
 
   currentUser = this.userService.currentUser;
 
+  // Signal derive: nombre de notifications non lues pour l utilisateur connecte.
   unreadNotificationsCount = computed(() => {
     const user = this.currentUser();
     if (!user) return 0;
@@ -29,6 +30,7 @@ export class ProfilePage {
     return this.notificationService.unreadCountForUser(user.email, user.matricule);
   });
 
+  // Signal derive: reservations confirmees de l utilisateur (source reactive du profil).
   userReservations = computed<ReservationModel[]>(() => {
     const user = this.currentUser();
     if (!user) return [];
@@ -38,12 +40,15 @@ export class ProfilePage {
       .filter(reservation => reservation.status === 'CONFIRMED');
   });
 
+  // Signal derive: total de reservations confirmees.
   reservationsCount = computed(() => this.userReservations().length);
 
+  // Signal derive: estimation des heures jouees (1h30 par reservation).
   hoursPlayed = computed(() => {
     return Number((this.userReservations().length * 1.5).toFixed(1));
   });
 
+  // Signal derive: nombre de clubs differents deja visites.
   visitedClubsCount = computed(() => {
     const clubs = this.userReservations()
       .map(reservation => String(reservation.clubName || '').trim())
@@ -52,6 +57,7 @@ export class ProfilePage {
     return new Set(clubs).size;
   });
 
+  // Signal derive: dette organisateur encore due par l utilisateur courant.
   outstandingDebt = computed(() => {
     const user = this.currentUser();
     if (!user) return 0;
@@ -59,6 +65,7 @@ export class ProfilePage {
     return this.reservationService.getOrganizerOutstandingDebt(user.matricule);
   });
 
+  // Methode getInitials: recupere les donnees necessaires a cette fonctionnalite.
   getInitials(): string {
     const user = this.currentUser();
     if (!user) return '?';
@@ -69,22 +76,27 @@ export class ProfilePage {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || '?';
   }
 
+  // Methode getRoleLabel: recupere les donnees necessaires a cette fonctionnalite.
   getRoleLabel(): string {
     return getRoleLabel(this.currentUser()?.role);
   }
 
+  // Methode navigateToReservations: gere la navigation vers l ecran approprie.
   navigateToReservations() {
     this.router.navigate(['/my-reservations']);
   }
 
+  // Methode navigateToInvitations: gere la navigation vers l ecran approprie.
   navigateToInvitations() {
     this.router.navigate(['/invitations']);
   }
 
+  // Methode navigateToNotifications: gere la navigation vers l ecran approprie.
   navigateToNotifications() {
     this.router.navigate(['/notifications']);
   }
 
+  // Methode logout: ferme la session utilisateur courante.
   logout() {
     this.userService.logout();
     this.router.navigate(['/login']);

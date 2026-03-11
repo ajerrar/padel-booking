@@ -18,14 +18,17 @@ export class ClubsPage {
 
   clubs: Club[] = this.clubService.getClubs();
 
+  // Methode navigateToClubCourts: gere la navigation vers l ecran approprie.
   navigateToClubCourts(clubId: number) {
     this.router.navigate(['/terrain', clubId]);
   }
 
+  // Methode navigateToHome: gere la navigation vers l ecran approprie.
   navigateToHome() {
     this.router.navigate(['/home']);
   }
 
+  // Methode getClubTags: recupere les donnees necessaires a cette fonctionnalite.
   getClubTags(club: Club): string[] {
 
     const tags: string[] = [];

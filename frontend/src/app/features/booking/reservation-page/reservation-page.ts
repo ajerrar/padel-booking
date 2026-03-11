@@ -39,6 +39,7 @@ export class ReservationPage {
     return this.slotPolicyService.getSlotsForSite(site, date);
   });
 
+  // Methode constructor: initialise l etat du composant ou du service au chargement.
   constructor() {
     this.route.queryParamMap.subscribe(params => {
       this.selectedClubName.set(params.get('clubName') ?? '');
@@ -53,6 +54,7 @@ export class ReservationPage {
     });
   }
 
+  // Methode getMemberTypeFromMatricule: recupere les donnees necessaires a cette fonctionnalite.
   private getMemberTypeFromMatricule(matricule: string): MemberType {
     const value = String(matricule || '').trim().toUpperCase();
     if (value.startsWith('G')) return 'GLOBAL';
@@ -60,12 +62,14 @@ export class ReservationPage {
     return 'FREE';
   }
 
+  // Methode getMaxAdvanceDays: recupere les donnees necessaires a cette fonctionnalite.
   private getMaxAdvanceDays(memberType: MemberType): number {
     if (memberType === 'GLOBAL') return 21;
     if (memberType === 'SITE') return 14;
     return 5;
   }
 
+  // Methode getDaysBetweenTodayAnd: recupere les donnees necessaires a cette fonctionnalite.
   private getDaysBetweenTodayAnd(dateIso: string): number {
     if (!dateIso) return Number.POSITIVE_INFINITY;
 
@@ -79,6 +83,7 @@ export class ReservationPage {
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   }
 
+  // Methode validateAccess: traite l action utilisateur avec les validations necessaires.
   private validateAccess(): string | null {
     const user = this.currentUser();
     if (!user) return null;
@@ -113,6 +118,7 @@ export class ReservationPage {
     return null;
   }
 
+  // Methode formatDisplayDate: construit la valeur attendue a partir des donnees disponibles.
   formatDisplayDate(date: string | undefined | null): string {
     if (!date) return '—';
     const [year, month, day] = date.split('-');
@@ -120,21 +126,25 @@ export class ReservationPage {
     return `${day}/${month}/${year}`;
   }
 
+  // Methode getVisibilityLabel: recupere les donnees necessaires a cette fonctionnalite.
   getVisibilityLabel(): string {
     return this.selectedVisibility() === 'PUBLIC' ? 'Match public' : 'Match privé';
   }
 
+  // Methode handleDateChange: gere handle date change de ce bloc.
   handleDateChange(value: string) {
     this.errorMessage.set('');
     this.selectedDate.set(value || '');
     this.selectedTime.set('');
   }
 
+  // Methode handleTimeChange: gere handle time change de ce bloc.
   handleTimeChange(value: string) {
     this.errorMessage.set('');
     this.selectedTime.set(value || '');
   }
 
+  // Methode continueToPayment: gere continue to payment de ce bloc.
   continueToPayment() {
     this.errorMessage.set('');
 
@@ -162,6 +172,7 @@ export class ReservationPage {
     });
   }
 
+  // Methode navigateBack: gere la navigation vers l ecran approprie.
   navigateBack() {
     this.router.navigate(['/home']);
   }

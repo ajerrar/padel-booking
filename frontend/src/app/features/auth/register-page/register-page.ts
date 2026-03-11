@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -33,10 +33,12 @@ export class RegisterPage {
     siteName: [''],
   });
 
+  // Methode isSiteMember: verifie une condition metier et renvoie le resultat attendu.
   get isSiteMember(): boolean {
     return this.form.controls.memberType.value === 'SITE';
   }
 
+  // Methode submit: traite l action utilisateur avec les validations necessaires.
   submit() {
     this.submitted.set(true);
     this.errorMessage.set('');

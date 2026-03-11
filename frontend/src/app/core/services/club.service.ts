@@ -59,10 +59,12 @@ export class ClubService {
     }
   ];
 
+  // Methode getClubs: recupere les donnees necessaires a cette fonctionnalite.
   getClubs(): Club[] {
     return this.clubs;
   }
 
+  // Methode getClubById: recupere les donnees necessaires a cette fonctionnalite.
   getClubById(id: number): Club | undefined {
     return this.clubs.find(club => club.id === id);
   }
